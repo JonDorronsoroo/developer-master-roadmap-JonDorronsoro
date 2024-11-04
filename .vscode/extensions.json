@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "astro-build.astro-vscode",
+    "gaojian80422.chatgpt-sql-vscode-plugin",
+    "imgildev.vscode-astro-pack"
+  ],
+  "unwantedRecommendations": []
+}

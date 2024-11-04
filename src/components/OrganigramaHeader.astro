@@ -1,0 +1,69 @@
+---
+import Icon from './AstroIcon.astro';
+import OrganigramaHint from './OrganigramaHint.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  organigramaId: string;
+  isUpcoming?: boolean;
+}
+
+const { title, description, organigramaId, isUpcoming = false } = Astro.props;
+const isOrganigramaReady = !isUpcoming;
+---
+
+
+<div class='border-b'>
+  <div class='container relative py-5 sm:py-12'>
+    <div class='mb-3 mt-0 sm:mb-6'>
+      <h1 class='mb-0.5 text-2xl font-bold sm:mb-2 sm:text-4xl'>
+        {title}
+      </h1>
+      <p class='text-sm text-gray-500 sm:text-lg'>{description}</p>
+    </div>
+
+    <div class='flex justify-between'>
+      <div class='flex gap-1 sm:gap-2'>
+        <a
+          href='/organigrama'
+          class='rounded-md bg-gray-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-600 sm:text-sm'
+          aria-label='Back to All Organigrama'
+        >
+          &larr;<span class='hidden sm:inline'>&nbsp;All Organigrama</span>
+        </a>
+
+        {
+          isOrganigramaReady && (
+            <button
+              data-guest-required
+              data-popup='login-popup'
+              class='hidden inline-flex items-center justify-center rounded-md bg-yellow-400 px-3 py-1.5 text-xs font-medium hover:bg-yellow-500 sm:text-sm'
+              aria-label='Download Roadmap'
+            >
+              <Icon icon='download' />
+              <span class='ml-2 hidden sm:inline'>Download</span>
+            </button>
+          )
+        }
+
+        {
+          isOrganigramaReady && (
+            <a
+              data-auth-required
+              class='inline-flex hidden items-center justify-center rounded-md bg-yellow-400 px-3 py-1.5 text-xs font-medium hover:bg-yellow-500 sm:text-sm'
+              aria-label='Download Roadmap'
+              target="_blank"
+              href={`/pdfs/organigrama/${organigramaId}.pdf`}
+            >
+              <Icon icon='download' />
+              <span class='ml-2 hidden sm:inline'>Download</span>
+            </a>
+          )
+        }
+      </div>
+    </div>
+
+    <OrganigramaHint organigramaId={organigramaId} />
+  </div>
+</div>

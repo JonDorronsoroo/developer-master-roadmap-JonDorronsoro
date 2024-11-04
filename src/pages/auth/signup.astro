@@ -1,0 +1,117 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro"
+
+
+---
+
+<BaseLayout title='Crear nuevo usuario' permalink={'/auth/signup'}>
+  <section class="bg-gray-50 dark:bg-gray-900">
+    <section class="bg-gray-50 dark:bg-gray-900">
+      <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+        <a href="#" class="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+          <img class="w-15 h-15 mr-2" src="/src/icons/logo.svg" alt="logo" />
+        </a>
+      <div
+        class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700"
+      >
+        <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+          <h1
+            class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white"
+          >
+            Crear una nueva cuenta:
+          </h1>
+          <form
+            id="signupFormId"
+            class="space-y-4 md:space-y-6"
+            method="POST"
+            action="/api/signup"
+          >
+            <div>
+              <label
+                for="username"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Nombre de usuario:</label
+              >
+              <input
+                type="text"
+                name="username"
+                id="username"
+                class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required=""
+              />
+            </div>
+            <div>
+              <label
+                for="password"
+                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >Contraseña:</label
+              >
+              <input
+                type="password"
+                name="password"
+                id="password"
+                placeholder="••••••••"
+                class="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                required=""
+              />
+            </div>
+
+            <!-- Add the checkbox for admin permissions here -->
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                name="admin"
+                id="admin"
+                class="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label
+                for="admin"
+                class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                >Convertirlo en administrador</label
+              >
+            </div>
+
+
+
+            <button
+              type="submit"
+              class="w-full text-white bg-pink-600 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+              >Crear cuenta</button
+            >
+            <div id="error-message" class="text-red-500 text-sm mt-2"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  document.getElementById('signupFormId')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    
+    const form = event.target as HTMLFormElement;
+    const formData = new FormData(form);
+    const errorMessageElement = document.getElementById('error-message');
+
+    try {
+      const response = await fetch(form.action, {
+        method: form.method,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorMessageElement) {
+          errorMessageElement.textContent = errorData.error;
+        }
+      } else {
+        window.location.href = '/addBD/escogerObjeto';
+      }
+    } catch (error) {
+      if (errorMessageElement) {
+        errorMessageElement.textContent = 'An unexpected error occurred.';
+      }
+    }
+  });
+</script>

@@ -1,0 +1,76 @@
+/* Ensure the container takes up full width */
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Style for the main content area */
+.main-content {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem; /* Space between the columns */
+}
+
+/* Filmstrip scroller styling */
+.filmstrip-scroller {
+    width: 200px; /* Adjust the width as needed */
+    height: 100vh; /* Full viewport height */
+    overflow-y: auto; /* Vertical scroll */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    background-color: #f7f7f7; /* Background color for the filmstrip */
+    border-right: 1px solid #ddd; /* Optional border for visual separation */
+}
+
+/* Frame renderer container styling */
+.frame-renderer-container {
+    flex: 1; /* Take up the remaining space */
+    padding: 10px; /* Optional padding */
+}
+
+/* Optional styling for the filmstrip list */
+.filmstrip-scroller ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* Optional styling for each list item */
+.filmstrip-scroller li {
+    width: 100%;
+    margin-bottom: 10px; /* Space between items */
+}
+
+.filmstrip-item {
+    position: relative; /* For absolute positioning of number */
+    background-color: #fff; /* Background color for card */
+    border: 1px solid #ddd; /* Border around card */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Padding inside card */
+    margin: 10px 0;
+    cursor: grab;
+}
+
+
+.svg-card {
+    display: flex;
+    justify-content: center; /* Center SVG content */
+    align-items: center; /* Center SVG content */
+}
+
+
+.card-number {
+    position: absolute;
+    top: 10px; /* Distance from the top */
+    right: 10px; /* Distance from the right */
+    background-color: #000; /* Background color */
+    color: #fff; /* Text color */
+    border-radius: 50%; /* Circle shape */
+    width: 30px; /* Size of the number circle */
+    height: 30px; /* Size of the number circle */
+    display: flex;
+    justify-content: center; /* Center text horizontally */
+    align-items: center; /* Center text vertically */
+    font-size: 16px; /* Font size */
+    font-weight: bold; /* Font weight */
+}

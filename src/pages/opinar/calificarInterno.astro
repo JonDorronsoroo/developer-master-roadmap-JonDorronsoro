@@ -1,0 +1,136 @@
+---
+
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import '../../styles/formulario.css'
+
+// Get the value of the id parameter from the URL
+const { request } = Astro;
+const url = new URL(request.url);
+const searchParams = new URLSearchParams(url.search);
+const id = searchParams.get('id');
+
+const user = Astro.locals.user;
+if(!user){
+  return Astro.redirect("/auth/signin")
+}
+
+---
+<head>
+    <meta charset="UTF-8" />
+  </head>
+  <BaseLayout title='Onboarding' permalink={`/opinar/calificarInterno?id='${id}'` }>
+      <SimplePageHeader
+      title='Califica el recurso interno'
+      description='Tu opinión nos importa. Dinos como mejorar y ayudanos a mejorar nuestras formaciones con tu experiencia.'
+    />
+  
+  
+    <form id='internoForm' method="POST" class="form-container" action="/api/calificar">
+        <input type="hidden" name="formType" value="calificarInterno" />
+
+        <input type="hidden" name="idRecurso" value={id} />
+
+        <input type="hidden" name="user" value={user.username} />
+
+      <fieldset>
+          <label  for="ponentes" >Indica el/los nombre(s) del(os) ponente(s), en caso de ser una formación:</label>
+          <input
+            type="text"
+            id="ponentes"
+            name="ponentes"
+            required
+            placeholder="Ponentes que han impartido"
+          />
+  
+          <label for="topTema">Entre los temas que se han trabajado, ¿hay alguno que se haya explicado particularmente bien? Si puedes, describe qué tema te ha ayudado.</label>
+          <input
+            type="text"
+            id="topTema"
+            name="topTema"
+            required
+            placeholder="Tema mejor trabajado..." aria-required="true"
+          />
+  
+          <label for="problema">¿Hay algún tema que no hayas comprendido del todo?</label>
+              <div class="radio-container" >
+                  <input type="radio" id="problemaSi" name="problema" value="true" required/>
+                  <label for="interno">Sí</label>
+  
+                  <input type="radio" id="problemaNo" name="problema" value="false" required/>
+                  <label for="intermedio">No</label>
+                </div>
+
+
+
+          <label for="temasConfusos">¿Qué tema NO has comprendido del todo?:</label>
+          <textarea
+            id="temasConfusos"
+            name="temasConfusos"
+            cols="50"
+            rows="5"
+            placeholder="Tema(s) no comprendido(s)..."
+          ></textarea>
+          
+  
+          <label for="dificultad">¿En términos genereales, el recurso te ha parecido útil?: Poco 1 ... 5 Muy útil</label>
+  
+              <div class="radio-container">
+                  <input type="radio" id="utilidad1" name="utilidad" value="1"/>
+                  <label for="utilidad1">1</label>
+                  
+                  <input type="radio" id="utilidad2" name="utilidad" value="2"/>
+                  <label for="utilidad2">2</label>
+                  
+                  <input type="radio" id="utilidad3" name="utilidad" value="3"/>
+                  <label for="utilidad3">3</label>
+
+                  <input type="radio" id="utilidad4" name="utilidad" value="4"/>
+                  <label for="utilidad4">4</label>
+
+                  <input type="radio" id="utilidad5" name="utilidad" value="5"/>
+                  <label for="utilidad5">5</label>
+                </div>
+
+                <label for="dificultad">Nivel de dificultad:</label>
+
+                <div class="radio-container">
+                    <input type="radio" id="principiante" name="dificultad" value="Principiante"/>
+                    <label for="principiante">Principiante</label>
+                    
+                    <input type="radio" id="intermedio" name="dificultad" value="Intermedio"/>
+                    <label for="intermedio">Intermedio</label>
+                    
+                    <input type="radio" id="avanzado" name="dificultad" value="Avanzado"/>
+                    <label for="avanzado">Avanzado</label>
+                  </div>
+
+
+
+         <label for="mejoras">¿Cómo mejorarías esta formación? ¿Te hubiera gustado que se hubiera incluido en algún otro tema?</label>
+          <textarea
+            id="mejoras"
+            name="mejoras"
+            cols="50"
+            rows="5"
+            placeholder="Recomendaciones..."
+          ></textarea>
+                  
+          <br><br><br>
+          <div class="button-container">
+          <button type="submit">Guardar</button>
+          </div>
+          <div id="correct-message" class="message success"></div>
+          <div id="error-message" class="message error"></div>
+  </form>
+  
+  
+  </BaseLayout>
+  
+  
+  <script>
+    import {  setupFormSubmission } from '../../utils.js';
+
+setupFormSubmission('internoForm', '/api/calificar');
+ </script>
+  

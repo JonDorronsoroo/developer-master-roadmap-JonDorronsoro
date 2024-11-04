@@ -1,0 +1,120 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { type ICategoria, type IRol } from "../../database/dbMySQL";
+import { getAllCategorias, getAllRoles } from "../../database/consultas";
+import '../../styles/formulario.css';
+import '../../styles/editor.css'
+import "../../components/Button/ButtonSave.astro"
+import ButtonSave from "../../components/Button/ButtonSave.astro";
+import fs from 'fs-extra';
+import path from 'path';
+
+const htmlContent = await fs.readFile(path.resolve('src/components/Editor/editor.html'), 'utf-8');
+
+const quillHTML = await fs.readFile(path.resolve('src/components/Editor/bubbleQuillEditor.html'),'utf-8');
+
+const user = Astro.locals.user;
+if(!user){
+    return Astro.redirect("/auth/signin")
+}else if(user && (!user.admin || user.admin==0)){
+    return Astro.redirect("/home")
+    
+}
+
+const categorias = await getAllCategorias();
+const categoriasNames = categorias?.map((categoria: ICategoria) => categoria.idNombre);
+const roles = await getAllRoles();
+const rolesNames = roles?.map((rol:IRol)=> rol.idRol)
+
+---
+
+<BaseLayout title='Onboarding' permalink={'/addBD/addCategoria'}>
+    <SimplePageHeader
+        title='Añade una nueva categoría'
+        description='Incluir en el almacenamiento de la empresa un nueva categoría:'
+    />
+
+
+    <form id="categoriaForm" class="form-container" autocomplete="off">
+        <fieldset>
+            <label  class="required-field" for="titulo">Título:</label>
+            <div id="editorTitulo" aria-required="true">
+            </div>
+
+            <br>
+            
+
+
+            <label class="required-field" for="descripcion">Descripción:</label>
+
+            <section set:html={htmlContent}>
+            </section>
+            
+            <div id="editorDescripcion"></div>
+
+
+            <br>
+            <br>
+            <input type="hidden" id="categoriaPadre" name="categoriaPadre" value="Global">
+
+
+            <label  for="categoriaPadre">Pertenece a alguna categoría más global:</label>
+    
+            
+            <input type="text" id="input-box" placeholder="Buscar categoría" autocomplete="off">
+
+            <div id="custom-dropdown" class="custom-dropdown">
+                <ul id="dropdown-options" class="dropdown-options">
+                    <li value="Global">Ninguna</li>
+                    {categoriasNames?.map((categoria: string) => (
+                        <li value={categoria}>{categoria}</li>
+                    ))}
+                </ul>
+            </div>
+
+        </fieldset>
+
+        <fieldset>
+            <label>Dirigido, ¿a qué rol? (Por defecto, a todos): </label>
+            {rolesNames?.map((rol:string) => (
+                 <label><input type="checkbox" name="rolCategoria" value={rol} checked/> {rol}</label>
+            ))}
+            
+           
+        </fieldset>
+
+        <center>
+
+          
+
+
+    <ButtonSave></ButtonSave>
+
+    
+</center>
+<div id="correct-message" class="message success"></div>
+<div id="error-message" class="message error"></div>
+
+</form>
+       
+
+
+<section set:html={quillHTML}></section>
+
+
+    <script>
+      import { setUpEditorFormHandle, setupDropdown, setupFormSubmission } from '../../utils.js';
+
+      setUpEditorFormHandle('categoriaForm');
+
+        setupFormSubmission('categoriaForm', '/api/addCategoria');
+        setupDropdown('input-box', 'custom-dropdown', 'categoriaPadre');
+
+
+
+   
+  </script>
+
+
+</BaseLayout>

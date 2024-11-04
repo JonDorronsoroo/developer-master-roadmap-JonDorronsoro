@@ -1,0 +1,30 @@
+---
+import RoadmapHeader from '../../components/RoadmapHeader.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getRoadmapById} from '../../database/consultas'
+
+interface Params extends Record<string, string | undefined> {
+  roadmapId: string;
+}
+
+
+const { roadmapId } = Astro.params as Params;
+const roadmapData = await getRoadmapById(roadmapId);
+
+---
+
+<BaseLayout
+  title={`${roadmapData?.title} Topics`}
+  description={roadmapData?.description}
+  permalink={`/${roadmapId}/topics`}
+>
+  <RoadmapHeader
+    description={roadmapData?.description ?? ''}
+    title={`${roadmapData?.title} Topics`}
+    roadmapId={roadmapId}
+    hasSearch={true}
+    hasTopics={false}
+  />
+
+
+</BaseLayout>

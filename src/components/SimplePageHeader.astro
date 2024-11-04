@@ -1,0 +1,32 @@
+---
+
+import type { ComponentChildren } from 'preact';
+
+export interface Props {
+  title: string;
+  description: ComponentChildren;  // Cambiado de string a ComponentChildren
+  showYouTubeAlert?: boolean;
+  link?: string;
+}
+
+
+const { title, description, showYouTubeAlert, link = false } = Astro.props;
+---
+
+<div class="bg-white border-b pt-6 pb-5 sm:pt-12 sm:pb-10">
+  <div class="container">
+    
+
+    <h1 class="text-3xl sm:text-5xl mb-1 sm:mb-2 font-bold">{title}</h1>
+    <p class="text-gray-500 text-sm sm:text-lg">
+      {description}
+      {/* Condicionalmente renderizamos el link si está presente */}
+      {link && (
+        <>
+          {' '} {/* Espacio en blanco antes del link */}
+          <a href={link} class="text-blue-600 underline" target="_blank" rel="noopener noreferrer">ayuda para saber más.</a>
+        </>
+      )}
+    </p>
+  </div>
+</div>

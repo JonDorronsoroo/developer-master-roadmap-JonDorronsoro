@@ -1,0 +1,57 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import { getAllRecursos, getRoadmapAlmacenados} from "../../database/consultas";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import '../../styles/formulario.css'
+
+const roadmap = await getRoadmapAlmacenados();
+
+
+---
+
+<BaseLayout title='Onboarding' permalink={'/modificar/escogerRoadmap'}>
+    <SimplePageHeader
+    title='Selecciona el itinerario a modificar'
+    description="Modificar cualquier error en el contenido de cualquier recurso"
+
+  />
+
+
+  <form method ="POST"  enctype="multipart/form-data" class="form-container" action="/api/modificar">
+    <input type="hidden" name="formType" value="escogerRoadmap" />
+    <fieldset>
+        <legend>recursos de aprendizaje</legend>
+        <label for="titulo">Modifica los apartados que desees del recurso elegido</label>
+        <input type="hidden" id="roadmapR" name="roadmapR">
+        <input type="text" id="input-box" placeholder="Buscar recurso..." autocomplete="off">
+
+            <div id="custom-dropdown" class="custom-dropdown">
+                <ul id="dropdown-options" class="dropdown-options">
+                    {roadmap?.map((road) => (
+                        <li value={road.idRoadmap}>{road.idRoadmap}</li>
+                    ))}
+                </ul>
+              
+</fieldset>
+
+<div class="button-container">
+  <button type="submit">Next</button>
+</div>
+
+<fieldset>
+  <input  type="file" name="JSON">
+</fieldset>
+
+<div id="correct-message" class="message success"></div>
+<div id="error-message" class="message error"></div>
+
+  </form>
+
+  <script>
+    import {  setupDropdown } from '../../utils.js';
+    
+
+    setupDropdown('input-box', 'custom-dropdown', 'roadmapR');
+    </script>
+
+</BaseLayout>

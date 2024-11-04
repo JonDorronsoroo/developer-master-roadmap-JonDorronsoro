@@ -1,0 +1,81 @@
+---
+import Icon from '../AstroIcon.astro';
+import AccountDropdown from './AccountDropdown.astro';
+import './btnlogout.css'
+const user = Astro.locals.user; 
+
+---
+<div class='bg-gray-100 py-5 text-lks-color sm:py-8'>
+  <nav class='container flex items-center'>
+    <!-- Left-aligned logo/icon -->
+    <a class='flex items-center text-lks-color font-medium text-lks-color mr-auto' href='/home' aria-label="roadmap.sh">
+      <Icon icon='logo' />
+    </a>
+
+    <!-- Center-aligned navigation items -->
+    <ul class='hidden space-x-5 sm:flex sm:items-center mx-auto'>
+      <li>
+        <a href='/roadmaps' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Itinerarios</a>
+      </li>
+      <li class='hidden lg:inline'>
+        <a href='/addBD/escogerObjeto' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Añadir</a>
+      </li>
+      <li class='hidden lg:inline'>
+        <a href='/opinar/escogerRecurso' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Calificar</a>
+      </li>
+
+      <li class='hidden lg:inline'>
+        <a href='/help/ayuda' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Ayuda</a>
+      </li>
+
+
+      <li class='hidden lg:inline'>
+        <a href='/modificar/escogerModificar' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Modificar</a>
+      </li>
+      
+      <li class='hidden lg:inline'>
+        <a href='/account/cuentaInfo' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Cuenta</a>
+      </li>
+
+      <li class='hidden lg:inline'>
+        {user && <form method="post" action="/api/signout">
+          <button class="button-out">
+            <div class="sign">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="#AA66D9" viewBox="0 0 512 512" stroke="#009ff8" stroke-width="4">
+                <path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path>
+              </svg>
+            </div>
+            <p>Logout</p>
+          </button>
+        </form>}
+      </li>
+    </ul>
+
+    <!-- Mobile Navigation Button -->
+    <button class='block cursor-pointer text-gray-400 hover:text-gray-50 sm:hidden' aria-label='Menu' data-show-mobile-nav>
+      <Icon icon='hamburger' />
+    </button>
+
+    <!-- Mobile Navigation Items -->
+    <div class='fixed bottom-0 left-0 right-0 top-0 z-40 flex hidden items-center bg-slate-900' data-mobile-nav>
+      <button data-close-mobile-nav class='absolute right-6 top-6 block cursor-pointer text-gray-400 hover:text-gray-50' aria-label='Close Menu'>
+        <Icon icon='close' />
+      </button>
+      <ul class='flex w-full flex-col items-center gap-2 md:gap-3'>
+        <li>
+          <a href='/roadmaps' class='text-xl hover:text-blue-300 md:text-lg'>Roadmaps</a>
+        </li>
+        <li>
+          <a href='/organigrama' class='text-xl hover:text-blue-300 md:text-lg'>Organigrama</a>
+        </li>
+        <!-- Links for logged in users -->
+        <li data-auth-required class='hidden'>
+          <a href='/account' class='text-xl hover:text-blue-300 md:text-lg'>Account</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</div>
+
+
+<script src='./navigation.ts'></script>

@@ -1,0 +1,28 @@
+.ayuda__container{
+    padding-block: 3rem 2rem ;
+    justify-content: center;
+    row-gap: 3.5 rem;
+}
+
+.info__data{
+    position: relative;
+    text-align: center;
+
+}
+
+.ayuda__title{
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.ayuda__description{
+    margin-bottom: 2.5rem;
+}
+
+.ayuda__images{
+    position: relative;
+    display: grid;
+    justify-items: center;
+    justify-self: center;
+}
+

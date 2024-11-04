@@ -1,0 +1,35 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ButtonDegradado from "../../components/Button/ButtonEleccion.astro";
+import ButtonProgress from "../../components/Button/ButtonProgress.astro";
+
+const user = Astro.locals.user;
+if(!user){
+    return Astro.redirect("/auth/signin")
+}
+
+---
+
+
+<BaseLayout title='About roadmap.sh' permalink={'/addBD/escogerObjeto'}>
+    <SimplePageHeader
+    title='Enriquece la base de datos con más información:'
+    description= 'Añade lo que desees a la base de datos. Si necesitas más información sobre el significado, acude a'
+    link= '/help/ayuda'
+      
+    
+  />
+
+{user && user.admin==1 && 
+<ButtonDegradado  path="/addBD/addCategoria" text="Añadir categoría"/>
+<ButtonDegradado path="/addBD/configCrear" text="Añadir nuevo roadmap"/>
+<ButtonDegradado path="/auth/signup" text="Crear cuenta usuario o admin"/>
+}
+ <ButtonDegradado path="/addBD/addRecurso" text="Añadir recurso"/>
+
+
+ <br>
+ <br>
+
+</BaseLayout>

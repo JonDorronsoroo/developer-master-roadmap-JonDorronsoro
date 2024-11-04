@@ -1,0 +1,55 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import { getAllCategorias} from "../../database/consultas";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+import '../../styles/formulario.css'
+
+const categorias = await getAllCategorias();
+
+var categoriasNames = categorias?.map((categoria) => categoria.idNombre);
+
+---
+
+<BaseLayout title='Onboarding' permalink={'/modificar/categoriaSelect'}>
+    <SimplePageHeader
+    title='Selecciona la categoría'
+description="Escoger la categoría que desees modificar su contenido"  />
+
+
+<form method ="POST" class="form-container" action="/api/modificar">
+    <input type="hidden" name="formType" value="escogerCategoria" />
+    <fieldset>
+        <legend>¿Qué deseas modificar?</legend>
+        <label for="categoria">Escoge la categoría para poder cambiar título, contenido o nivel:</label>
+        <input type="hidden" id="categoriaS" name="categoriaS">
+        <input type="text" id="input-box" placeholder="Buscar categoría" autocomplete="off">
+
+        <div id="custom-dropdown" class="custom-dropdown">
+            <ul id="dropdown-options" class="dropdown-options">
+                {categoriasNames?.map((categoria: string) => (
+                    <li value={categoria}>{categoria}</li>
+                ))}
+            </ul>
+        </div>
+
+</fieldset>
+<div class="button-container">
+  <button type="submit">Next</button>
+</div>
+
+<div id="correct-message" class="message success"></div>
+<div id="error-message" class="message error"></div>
+  </form>
+
+  <script>
+    import { setupDropdown } from '../../utils.js';
+    
+
+      setupDropdown('input-box', 'custom-dropdown', 'categoriaS');
+
+
+</script>
+
+
+</BaseLayout>

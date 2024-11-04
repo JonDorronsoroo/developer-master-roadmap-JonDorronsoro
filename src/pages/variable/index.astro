@@ -1,0 +1,37 @@
+---
+import SimplePageHeader from '../../components/SimplePageHeader.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GroupRadioButton from '../../components/Variable/GroupRadioButton.astro';
+---
+
+<BaseLayout
+  title='Roadmap Personalizado '
+  description={'Escoge los parámetros que más se adecuen a tu situación y te mostraremos un roadmap personalizado para ti.'}
+  permalink={'/variable'}
+>
+  <SimplePageHeader
+    title='Roadmap Personalizado '
+    description='Escoge los parámetros que más se adecuen a tu situación y te mostraremos un roadmap personalizado para ti.'
+  />
+  <div class='relative border-b border-b-[#1e293c] py-10 sm:py-14'>
+    <div class='container'>
+      <p class='hidden sm:block text-black text-lg px-4'>
+        ¿Qué necesitas?
+      </p>
+      <GroupRadioButton nombreGrupo="puesto" valores={ ["junior","senior"]} ></GroupRadioButton>
+
+</div>
+<button type="submit" name="variablePuesto">Enviar</button>
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+</BaseLayout>

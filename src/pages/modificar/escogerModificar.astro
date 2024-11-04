@@ -1,0 +1,31 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ButtonDegradado from "../../components/Button/ButtonEleccion.astro";
+
+const user = Astro.locals.user;
+if(!user){
+    return Astro.redirect("/auth/signin")
+}
+
+
+---
+
+
+<BaseLayout title='Qué modificar' permalink={'/addBD/escogerObjeto'}>
+    <SimplePageHeader
+    title='Selecciona qué modificar'
+    description='Escoge que es lo que información deseas modifiar de la base de datos.'
+  />
+
+  {user && user.admin==1 &&
+
+  <ButtonDegradado titulo="Modifca o elimina el contenido de la base de datos"  path="/modificar/categoriaSelect" text="Modifcar categoría"></ButtonDegradado>
+  <ButtonDegradado path="/modificar/escogerRoadmap" text="Modifcar roadmap"></ButtonDegradado>
+  }
+
+    <ButtonDegradado path="/modificar/escogerRecurso" text="Modifcar recurso"></ButtonDegradado>
+
+
+
+</BaseLayout>

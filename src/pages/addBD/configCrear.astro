@@ -1,0 +1,116 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import {getCategoriaPrimerNivelGENERAL, getCategoriaSegundoNivelGENERAL,getCategoriaTercerNivelGENERAL } from "../../database/consultas";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { insertNuevoRoadmap } from "../../database/consultas";
+import { insertRelacionRoadmapCategoria } from "../../database/consultas";
+import '../../styles/formulario.css'
+
+const user = Astro.locals.user;
+if(!user){
+    return Astro.redirect("/auth/signin")
+}else if(user && (!user.admin || user.admin==0)){
+    return Astro.redirect("/home")
+    
+}
+const categoriasNivel1 = await getCategoriaPrimerNivelGENERAL();
+
+const categoriasNivel2 = await getCategoriaSegundoNivelGENERAL();
+
+const categoriasNivel3 = await getCategoriaTercerNivelGENERAL();
+
+
+---
+
+<BaseLayout title='About roadmap.sh' permalink={'/addBD/configCrear'}>
+    <SimplePageHeader
+    title='Añade un nuevo itinerario:'
+    description='Crea tu propio itinerario con la información disponible.'
+  />
+
+  <form id="roadmapForm" class="form-container" autocomplete="off">
+
+    <fieldset>
+    <label class="required-field">Titulo:</label>
+    <input type="text" name="titulo" required />
+
+    <label class="required-field">Descripción:</label>
+    <textarea name="descripcion" rows="4" cols="60" required></textarea>
+    </fieldset>
+
+    <fieldset>
+        <label for="categorias">Escoge las categorías del 1º nivel que desees incluir:</label>
+            
+            <input type="text" id="input-box" placeholder="Buscar primer nivel" autocomplete="off">
+
+            <div id="custom-dropdown" class="custom-dropdown">
+                <ul id="dropdown-options" class="dropdown-options">
+                    {categoriasNivel1?.map((categoria) => (
+                        <li value={categoria.idNombre}>{categoria.idNombre}</li>
+                    ))}
+                </ul>
+            </div>
+
+            <div id="checkboxList" class="checkbox-list"></div>
+
+    </fieldset>
+
+
+    <fieldset>
+        <label for="categorias">Escoge las categorías del 2º nivel que desees incluir:</label>
+            
+            <input type="text" id="input-boxSegundo" placeholder="Buscar segundo nivel" autocomplete="off">
+
+            <div id="custom-dropdownSegundo" class="custom-dropdown">
+                <ul id="dropdown-optionsSegundo" class="dropdown-options">
+                    {categoriasNivel2?.map((categoria) => (
+                        <li value={categoria.idNombre}>{categoria.idNombre}</li>
+                    ))}
+                </ul>
+            </div>
+
+            <div id="checkboxListSegundo" class="checkbox-list"></div>
+
+    </fieldset>
+
+    <fieldset>
+        <label for="categorias">Escoge las categorías del 3º nivel que desees incluir:</label>
+            
+            <input type="text" id="input-boxTercero" placeholder="Buscar tercero nivel" autocomplete="off">
+
+            <div id="custom-dropdownTercero" class="custom-dropdown">
+                <ul id="dropdown-optionsTercero" class="dropdown-options">
+                    {categoriasNivel3?.map((categoria) => (
+                        <li value={categoria.idNombre}>{categoria.idNombre}</li>
+                    ))}
+                </ul>
+            </div>
+
+            <div id="checkboxListTercero" class="checkbox-list"></div>
+
+    </fieldset>
+
+
+    <div class="button-container">
+        <button type="submit">Crear y Guardar</button>
+    </div>
+
+    <div id="correct-message" class="message success"></div>
+    <div id="error-message" class="message error"></div>
+
+    </form>
+
+<script>
+
+import { setupFormSubmission } from '../../utils.js';
+import { setupDropdown } from './configRoadmap';
+
+setupFormSubmission('roadmapForm', '/api/configItenerario');
+setupDropdown('input-box', 'custom-dropdown', 'checkboxList');
+setupDropdown('input-boxSegundo', 'custom-dropdownSegundo', 'checkboxListSegundo');
+setupDropdown('input-boxTercero', 'custom-dropdownTercero', 'checkboxListTercero');
+
+
+</script>
+
+</BaseLayout>

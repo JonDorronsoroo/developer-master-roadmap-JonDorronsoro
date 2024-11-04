@@ -1,0 +1,155 @@
+---
+import FrameRenderer from '../components/FrameRenderer/FrameRenderer.astro';
+import RelatedRoadmaps from '../components/RelatedRoadmaps.astro';
+import RoadmapHeader from '../components/RoadmapHeader.astro';
+import { TopicDetail } from '../components/TopicDetail/TopicDetail';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import {getCategoriasDeXroadmapSegunZrol} from '../database/consultas'
+import { getComponentesCategoriaPrimerNivel, getComponentesCategoriaSegundoNivel, getComponentesCategoriaTercerNivel, getRoadmapById } from '../database/consultas';
+export const prerender = false;
+import '../styles/scrollcontainer.css'
+
+interface Params extends Record<string, string | undefined> {
+  roadmapId: string;
+}
+
+const user= Astro.locals.user;
+if(!user){
+  return Astro.redirect("/auth/signin")
+}
+
+//const { roadmapId } = Astro.params as Params;
+const roadmapId = "DevOps Prototipo Completo"
+
+// TODO: Mirar para añadir el FAQ en el archivo de datos del roadmap de la BD
+
+const roadmapData = await getRoadmapById(roadmapId);
+
+const componentesCategoriaPrimerNivel:string[] = [];
+const componentesCategoriaSegundoNivel:[string,string][]= [];
+let  nombresListaCategoriasRol: string[]=[]
+let componentesCategoriaTercerNivel:[string,string][] = [];
+
+let jsonLdSchema: Record<string, unknown>[] | undefined = [];
+
+
+
+  componentesCategoriaPrimerNivel.length = 0;
+  try {
+    const componentesPrimerNivel = await getComponentesCategoriaPrimerNivel(roadmapId);
+    componentesPrimerNivel?.map((componentePrimerNivel) => {
+        componentesCategoriaPrimerNivel.push(
+            componentePrimerNivel.componenteCategoria);
+
+    });
+
+    const componentesSegundoNivel = await getComponentesCategoriaSegundoNivel(roadmapId);
+
+    componentesSegundoNivel?.map( (componenteSegundoNivel) => {
+        componentesCategoriaSegundoNivel.push(
+            [componenteSegundoNivel.componenteCategoria, componenteSegundoNivel.categoriaSuperior]);
+   })
+
+   const processedCategories = new Set();
+
+const uniqueComponentesSegundoNivel = componentesSegundoNivel?.filter((segundoNivel) => {
+  if (processedCategories.has(segundoNivel.categoriaSuperior)) {
+    return false;
+  } else {
+    processedCategories.add(segundoNivel.categoriaSuperior);
+    return true;
+  }
+});
+
+   const tercerNivelPromises = uniqueComponentesSegundoNivel?.map(async (segundoNivel) => {
+    const componentesTercerNivel = await getComponentesCategoriaTercerNivel(roadmapId, segundoNivel.categoriaSuperior);
+    return componentesTercerNivel?.map((componenteTercerNivel) => [
+      componenteTercerNivel.componenteCategoria,
+      componenteTercerNivel.categoriaSuperior
+    ]);
+  });
+
+  const resolvedTercerNivel = await Promise.all(tercerNivelPromises?.filter(Boolean) ?? []);
+  resolvedTercerNivel.forEach((nivel) => {
+    if (nivel) {
+      componentesCategoriaTercerNivel = [...componentesCategoriaTercerNivel, ...nivel as Array<[string, string]>];
+    }
+  });
+
+  
+
+
+} catch (error) {
+  console.log(error);
+}
+
+ const listaCategoriasDadoRolYroadmap = await getCategoriasDeXroadmapSegunZrol(roadmapId, user?.rol)
+  listaCategoriasDadoRolYroadmap?.map((item)=>{
+    nombresListaCategoriasRol.push(item.idNombre)
+  } )
+console.log(nombresListaCategoriasRol)
+---
+
+<BaseLayout
+  permalink={`/dragdrop/${roadmapId}`}
+  title={roadmapData?.idRoadmap ?? 'Indefinido'}
+  description={roadmapData?.description}
+  jsonLd={jsonLdSchema}
+>
+  <!-- Preload the font being used in the renderer -->
+  <link
+    rel='preload'
+    href='/fonts/balsamiq.woff2'
+    as='font'
+    type='font/woff2'
+    crossorigin
+    slot='after-header'
+  />
+
+  <RoadmapHeader
+    title={roadmapData?.idRoadmap ?? 'Indefinido'}
+    description={roadmapData?.description ?? 'Indefinido'}
+    note={roadmapData?.note}
+    roadmapId={roadmapId}
+
+  />
+
+  <div class='bg-gray-50 pt-4 sm:pt-12'>
+    {roadmapData && (
+        <div class='container relative max-w-[1200px]'>
+            <TopicDetail client:idle />
+
+            <div class="main-content">
+                <div class="filmstrip-scroller">
+                    <ul id="filmstrip-ul">
+                        <!-- List items will be dynamically added here -->
+                    </ul>
+                </div>
+
+                <div class="frame-renderer-container">
+                    <FrameRenderer
+                        resourceType={'roadmap'}
+                        resourceId={roadmapId}
+                        dimensions={roadmapData.dimensions}
+                        componentesCategoriaPrimerNivel={componentesCategoriaPrimerNivel}
+                        componentesCategoriaSegundoNivel={componentesCategoriaSegundoNivel}
+                        componentesCategoriaTercerNivel={componentesCategoriaTercerNivel}
+                        categoriaSegunRol={nombresListaCategoriasRol}
+                    />
+                </div>
+            </div>
+
+            {roadmapData && <RelatedRoadmaps roadmap={roadmapData} />}
+        </div>
+    )}
+</div>
+
+
+</BaseLayout>
+
+
+<script>
+  import { loadScroller } from "../dragdrop.js"
+  loadScroller();
+
+</script>

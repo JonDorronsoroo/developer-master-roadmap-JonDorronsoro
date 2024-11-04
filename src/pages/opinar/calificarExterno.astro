@@ -1,0 +1,204 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import '../../styles/formulario.css'
+
+const { request } = Astro;
+const url = new URL(request.url);
+const searchParams = new URLSearchParams(url.search);
+const id = searchParams.get('id');
+
+
+
+const user = Astro.locals.user;
+if(!user){
+  return Astro.redirect("/auth/signin")
+}
+
+---
+<head>
+    <meta charset="UTF-8" />
+  </head>
+  <BaseLayout title='Onboarding' permalink={`/opinar/calificarExterno?id='${id}'` }>
+      <SimplePageHeader
+      title='Califica el recurso externo'
+      description='Tu opinión nos importa, ayudanos a mejorar nuestras formaciones con tu experiencia.'
+    />
+  
+  
+    <form id="externoForm" method="POST" class="form-container" action="/api/calificar">
+        <input type="hidden" name="formType" value="calificarExterno" />
+
+        <input type="hidden" name="idRecurso" value={id} />
+
+        <input type="hidden" name="user" value={user.username} />
+  
+        <fieldset>
+
+          <label for="dificultad">¿Cúal es tu valoración general del recurso?: Negativa 1 ... 5 Positiva</label>
+    
+                <div class="radio-container">
+                    <input type="radio" id="valoracion1" name="valoracion" value="1"/>
+                    <label for="utilidad1">1</label>
+                    
+                    <input type="radio" id="valoracion2" name="valoracion" value="2"/>
+                    <label for="utilidad2">2</label>
+                    
+                    <input type="radio" id="valoracion3" name="valoracion" value="3"/>
+                    <label for="utilidad3">3</label>
+  
+                    <input type="radio" id="valoracion4" name="valoracion" value="4"/>
+                    <label for="utilidad4">4</label>
+  
+                    <input type="radio" id="valoracion5" name="valoracion" value="5"/>
+                    <label for="utilidad5">5</label>
+                  </div>
+        </fieldset>
+
+      <fieldset>
+
+        <label for="resolutivo">¿En términos genereales, el recurso te ha parecido resolutivo?: Poco 1 ... 5 Muy útil</label>
+  
+              <div class="radio-container">
+                  <input type="radio" id="utilidad1" name="resolutivo" value="1"/>
+                  <label for="utilidad1">1</label>
+                  
+                  <input type="radio" id="utilidad2" name="resolutivo" value="2"/>
+                  <label for="utilidad2">2</label>
+                  
+                  <input type="radio" id="utilidad3" name="resolutivo" value="3"/>
+                  <label for="utilidad3">3</label>
+
+                  <input type="radio" id="utilidad4" name="resolutivo" value="4"/>
+                  <label for="utilidad4">4</label>
+
+                  <input type="radio" id="utilidad5" name="resolutivo" value="5"/>
+                  <label for="utilidad5">5</label>
+                </div>
+      </fieldset>
+
+      <fieldset>
+
+        <label for="recomendado">¿Recomendarías este recurso a alguien en tu situación?</label>
+                <div class="radio-container" >
+                    <input type="radio" id="recomendadoSi" name="recomendado" value="true" required/>
+                    <label for="interno">Sí</label>
+    
+                    <input type="radio" id="recomendadoNo" name="recomendado" value="false" required/>
+                    <label for="intermedio">No</label>
+                  </div>
+      </fieldset>
+
+      <fieldset>
+          <label for="topTema">Entre los temas que se han trabajado, ¿hay alguno que se haya explicado particularmente bien? Si puedes, describe qué tema te ha ayudado.</label>
+          <input
+            type="text"
+            id="topTema"
+            name="topTema"
+            required
+            placeholder="Tema mejor trabajado..." aria-required="true"
+          />
+
+        </fieldset>
+
+        <fieldset>
+
+          <label for="beneficioso">¿Te resultado de alguna forma beneficioso? Ya sea en focada esta ayuda para tu puesto de trabajo o para tu formación general: Poco 1 ... 5 Muy útil</label>
+    
+                <div class="radio-container">
+                    <input type="radio" id="beneficioso1" name="beneficioso" value="1"/>
+                    <label for="utilidad1">1</label>
+                    
+                    <input type="radio" id="beneficioso2" name="beneficioso" value="2"/>
+                    <label for="utilidad2">2</label>
+                    
+                    <input type="radio" id="beneficioso3" name="beneficioso" value="3"/>
+                    <label for="utilidad3">3</label>
+  
+                    <input type="radio" id="beneficioso4" name="beneficioso" value="4"/>
+                    <label for="utilidad4">4</label>
+  
+                    <input type="radio" id="beneficioso5" name="beneficioso" value="5"/>
+                    <label for="utilidad5">5</label>
+                  </div>
+        </fieldset>
+
+        <fieldset>
+                <label for="dificultad">Nivel de dificultad:</label>
+
+                <div class="radio-container">
+                    <input type="radio" id="principiante" name="dificultad" value="Principiante"/>
+                    <label for="principiante">Principiante</label>
+                    
+                    <input type="radio" id="intermedio" name="dificultad" value="Intermedio"/>
+                    <label for="intermedio">Intermedio</label>
+                    
+                    <input type="radio" id="avanzado" name="dificultad" value="Avanzado"/>
+                    <label for="avanzado">Avanzado</label>
+                  </div>
+                </fieldset>
+
+            <fieldset>
+
+
+                  <label for="problematico">¿Hay algún tema que no hayas comprendido del todo? ¿O has tenido algún tipo de problema?</label>
+                  <div class="radio-container" >
+                      <input type="radio" id="problematicoSi" name="problematico" value="true" required/>
+                      <label for="interno">Sí</label>
+      
+                      <input type="radio" id="problematicoNo" name="problematico" value="false" required/>
+                      <label for="intermedio">No</label>
+                    </div>
+            </fieldset>
+
+            <fieldset>
+              <label for="problema">Si has tenido algún problema, descríbelo:</label>
+              <input
+                type="text"
+                id="problema"
+                name="problema"
+                required
+                placeholder="Problema..." aria-required="true"
+              />
+    
+            </fieldset>
+
+
+        <fieldset>
+        <label for="horas">¿Cuánto tiempo te ha llevado realizarlo/leerlo? Indícalo en horas:</label>
+        <input type="number" id="horas" name="horas" required placeholder="Horas invertidas..." aria-required="true" step="0.5" />
+         </fieldset>
+
+
+         <fieldset>
+          <label for="extra">Si deseas añadir cualquier comentario acerca del recurso:</label>
+          <input
+            type="text"
+            id="extra"
+            name="extra"
+            required
+            placeholder="..." aria-required="true"
+          />
+
+        </fieldset>
+
+         <br><br><br>
+         <div class="button-container">
+          <button type="submit">Guardar</button>
+        </div>
+
+        <div id="correct-message" class="message success"></div>
+        <div id="error-message" class="message error"></div>
+  </form>
+  
+  
+  </BaseLayout>
+
+  <script>
+     import {  setupFormSubmission } from '../../utils.js';
+
+setupFormSubmission('externoForm', '/api/calificar');
+  </script>
+  
+
+  

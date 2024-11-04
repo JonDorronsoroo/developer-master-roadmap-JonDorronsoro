@@ -1,0 +1,101 @@
+button {
+    display: flex;
+    justify-content: space-around;/* Adjusted to space out content */
+    align-items: center;
+    padding: 0.3em 0em 0.3em 0.5em; /* Reduced padding to fit content better */
+    background-color: #009ff8;
+    cursor: pointer;
+    box-shadow: 2px 3px 0px rgba(100, 100, 98, 0.43); /* Reduced shadow */
+    border: 2px solid rgb(88, 127, 186); /* Reduced border size */
+    border-radius: 10px; /* Slightly smaller border radius */
+    position: relative;
+    overflow: hidden;
+    z-index: 100;
+    transition: box-shadow 250ms, transform 250ms, filter 50ms;
+    font-size: 1.3em; /* Adjusted font size */
+   
+}
+
+button:hover {
+    transform: translate(1.5px, 1.5px); /* Smaller translation */
+    box-shadow: 1px 2px 0px black; /* Smaller shadow */
+}
+
+button:active {
+    filter: saturate(0.75);
+}
+
+button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: #f85900;
+    z-index: -1;
+    transform: translateX(-100%);
+    transition: transform 250ms;
+}
+
+button:hover::after {
+    transform: translateX(0);
+}
+
+.bgContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    max-width: 36%; /* Allow full width */
+    font-size: 1em; /* Adjusted font size */
+    font-weight: 600;
+}
+
+.bgContainer span {
+    position: relative;
+    transform: translateX(-100%);
+    transition: all 250ms;
+}
+
+.button:hover .bgContainer > span {
+    transform: translateX(0);
+}
+
+.arrowContainer {
+    padding: 0.3em; /* Reduced padding */
+    margin-inline-end: 0.3em; /* Reduced margin */
+    border: 2px solid; /* Reduced border size */
+    border-radius: 50%;
+    background-color: #f85900;
+    position: relative;
+    overflow: hidden;
+    transition: transform 250ms, background-color 250ms;
+    z-index: 100;
+}
+
+.arrowContainer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-color: #009ff8;
+    transform: translateX(-100%);
+    z-index: -1;
+    transition: transform 250ms ease-in-out;
+}
+
+button:hover .arrowContainer::after {
+    transform: translateX(0);
+}
+
+button:hover .arrowContainer {
+    transform: translateX(3px); /* Smaller translation */
+}
+
+button:active .arrowContainer {
+    transform: translateX(5px); /* Smaller translation */
+}
+
+.arrowContainer svg {
+    vertical-align: middle;
+    width: 0.8em; /* Smaller SVG size */
+    height: 0.8em; /* Smaller SVG size */
+}

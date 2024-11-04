@@ -1,0 +1,86 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import "./cuenta.css"
+
+const user = Astro.locals.user;
+if(!user){
+    return Astro.redirect("/auth/signin")
+}
+---
+
+<BaseLayout title='Onboarding' permalink={'/addBD/addCategoria'}>
+  <SimplePageHeader
+      title='Cuenta'
+      description='Aquí podrás visualizar tu información de usuario y cambiar tu contraseña:'
+  />
+
+    <title>Configuración de Cuenta de Usuario</title>
+
+<form id="accountChangeForm" autocomplete="off">
+<div class="container">
+    <h2>Configuración de Cuenta</h2>
+
+    <div class="profile-picture">
+        <img src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar">
+    </div>
+
+    <div class="form-group">
+        <label for="username">Nombre de Usuario:</label>
+        <input type="text" id="username" name="username" value={user.username} readonly>
+          
+          </input> 
+    </div>
+
+    <div class="form-group">
+        <label for="password">Cambiar Contraseña:</label>
+        <input type="text" id="password" name="password">
+
+        <label for="password">Repetir contraseña:</label>
+        <input type="password" id="passwordRep" name="passwordRep">
+        
+    </div>
+
+    <div class="form-group">
+        <label for="job">Rol de Trabajo actual: {user.rol}</label>
+        <label>Escoge un rol diferente: </label>
+
+        <select id="job" name="job" >
+          <option  disabled selected>Selecciona un rol para cambiar el actual...</option>
+            <option value="Administrador">Administrador</option>
+            <option value="Soporte">Soporte</option>
+            <option value="Desarrollador">Desarrollador</option>
+        </select>
+
+
+    </div>
+
+    <div class="form-group">
+        <label for="admin">¿Es Administrador?:</label>
+        {user.admin==1 ? (
+          <div>
+          <input type="checkbox" id="admin" name="admin" checked disabled>
+        </div>
+        ) : (
+        <input type="checkbox" id="admin" name="admin" disabled>
+        )}
+
+        
+    </div>
+</div>
+
+<div class="button-container">
+          <button type="submit">Guardar cambio</button>
+      </div>
+        
+<div id="correct-message" class="message success"></div>
+        <div id="error-message" class="message error"></div>
+</form>
+
+<script>
+  import { setupFormSubmission } from '../../utils.js';
+    setupFormSubmission('accountChangeForm', '/api/accountHandle');
+
+    
+  </script>
+</BaseLayout>

@@ -1,0 +1,34 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro"
+import SimplePageHeader from "../../components/SimplePageHeader.astro"
+import "../../styles/ayuda.css"
+
+---
+<BaseLayout title="Información" permalink={'/help/ayuda'}>
+    <SimplePageHeader
+    title='Información'
+    description='Aquí se aclaran los distinto significados de los objetos que componen los itinerarios o se utilizan a lo largo de esta aplicación.'
+/>
+
+<section class="ayuda section" id="ayuda">
+    <div class="ayuda container container grid">
+        <div class="info__data">
+            <h1 class="ayuda__title">
+                Recurso <br> Ejemplo
+            </h1>
+
+            <p class="ayuda__description">
+                Lorem ipsum dolor sit amet consectetur adipiscing elit himenaeos lacus habitasse, varius blandit eleifend quam tristique lectus augue morbi tempus facilisis inceptos, cursus ad laoreet suspendisse tempor accumsan orci mi congue. Sagittis dictumst potenti erat odio orci et nisi habitant magnis, lobortis molestie massa imperdiet aliquam dignissim fusce eget ligula, eros pharetra fermentum feugiat posuere dictum dui suscipit. Himenaeos morbi ligula dictum aliquam id lacus nam euismod facilisis nostra, parturient urna curae convallis taciti tincidunt ante nunc mus suspendisse natoque, bibendum vitae libero lobortis duis non facilisi senectus fusce.
+            </p>
+        </div>
+
+        <div class="ayuda__images">
+            <img src="/public/manifest/icon196.png" alt="" class="ayuda__recurso">
+        </div>
+
+
+
+    </div>
+</section>
+
+</BaseLayout>

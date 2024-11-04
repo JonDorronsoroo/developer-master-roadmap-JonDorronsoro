@@ -1,0 +1,87 @@
+---
+import FeaturedGuides from '../components/FeaturedGuides.astro';
+import FeaturedItems from '../components/FeaturedItems/FeaturedItems.astro';
+import FeaturedVideos from '../components/FeaturedVideos.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+//import { getAllOrganigramas } from '../lib/organigrama';
+import { getAllGuides } from '../lib/guide';
+
+import { getAllVideos } from '../lib/video';
+import { getRoadmapAlmacenados } from '../database/consultas';
+
+export const prerender = false;
+//const roleRoadmaps = await getRoadmapsByTag('role-roadmap');
+//const skillRoadmaps = await getRoadmapsByTag('skill-roadmap');
+//const organigramas = await getAllOrganigramas();
+const roadmaps = await getRoadmapAlmacenados();
+
+const guides = await getAllGuides();
+const videos = await getAllVideos();
+
+const user= Astro.locals.user;
+if(!user){
+  return Astro.redirect("/auth/signin")
+}
+
+---
+
+<BaseLayout
+  title='Itienerarios apredizaje'
+  description={'Para mejorar la experiencia de las nuevas incorporaciones y facilitar su adaptación a su puesto'}
+  permalink={'/home'}
+>
+<div class='bg-blanco'>
+    <div class='border-b border-b-morado'>
+      <div class='container text-left sm:text-center py-6 pb-14 sm:py-20 px-6 sm:px-0'>
+        <h1
+          class='text-2xl sm:text-5xl mb-2 sm:mb-4 font-bold bg-lks-color text-transparent bg-clip-text'
+        >
+          Itinerarios para desarrolladores
+        </h1>
+
+        <p class='hidden sm:block text-negro text-lg px-4'>
+          <span class='font-medium font-bold italic text-morado'>Proyecto onboarding</span> para mejorar la experiencia de las nuevas incorporaciones y facilitar su adaptación a su puesto
+          de trabajo. 
+        </p>
+
+      
+      </div>
+    </div>
+
+   {roadmaps && <FeaturedItems
+      heading='Itinerarios disponibles'
+      featuredItems={roadmaps.map((roadmapItem) => ({
+        text: roadmapItem.idRoadmap,
+        url: `/${roadmapItem.idRoadmap}`,
+       // isNew: roadmapItem.frontmatter.isNew,
+       // isUpcoming: roadmapItem.frontmatter.isUpcoming,
+      }))}
+    />}
+
+   
+    <!--<FeaturedItems
+      heading='Organigrama'
+      featuredItems={organigramas.map((organigrama) => ({
+        text: organigrama.frontmatter.briefTitle,
+        url: `/organigrama/${organigrama.id}`,
+        isNew: organigrama.frontmatter.isNew,
+        isUpcoming: organigrama.frontmatter.isUpcoming,
+      }))}
+    />-->
+
+    <!-- 
+    <div class='grid grid-cols-1 gap-7 sm:gap-16 bg-gray-50 py-7 sm:py-16'>
+      <a href='/variable' class='text-center text-lg font-bold text-orange-400 hover:text-gray-800'>
+        Obtener personalizado
+      </a>
+    </div>
+    -->
+<!-- 
+    <div class='grid grid-cols-1 gap-7 sm:gap-16 bg-gray-50 py-7 sm:py-16'>
+      <FeaturedGuides heading='Guides' guides={guides.slice(0, 7)} />
+      <FeaturedVideos heading='Videos' videos={videos.slice(0, 7)} />
+    </div>
+-->
+    
+  </div>
+</BaseLayout>

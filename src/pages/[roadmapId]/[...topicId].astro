@@ -1,0 +1,78 @@
+---
+// Import your layout, types, and other dependencies
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import type { Props } from '../guides/[guideId].astro';
+import { getResourcesByCategory, getCategoriaInformacionRoadmap } from '../../database/consultas';
+import type { ICategoria, IRecurso } from '../../database/dbMySQL';
+import IconoFormatoR from '../../components/IconoFormatoR.astro';
+
+// Import the React component
+import ProgressCheckbox from '../../components/TopicDetail/ProgressCheckBox';
+
+// Fetch resources and category data
+export const prerender = false;
+const { topicId } = Astro.params;
+
+let recursos: IRecurso[] | undefined;
+let cuerpo: ICategoria | undefined;
+
+if (topicId) {
+  recursos = await getResourcesByCategory(topicId);
+  cuerpo = await getCategoriaInformacionRoadmap(topicId);
+}
+---
+
+<BaseLayout
+  title={cuerpo ? cuerpo.idNombre : 'No title'}
+  description={`Recursos gratuitos para aprender sobre ${cuerpo ? cuerpo.idNombre : ''}. Todo lo que necesitas saber sobre ${cuerpo ? cuerpo.idNombre : ''}.`}
+  noIndex={true}
+  permalink={`/${topicId}`}
+>
+  <div class="bg-gray-50 py-8">
+    <div class="container mx-auto pb-16 prose prose-p:mt-0 prose-h1:mb-4 prose-h2:mb-3 prose-h2:mt-0 px-4">
+      <main id="main-content">
+        {cuerpo ? (
+          <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 text-center">{cuerpo.idNombre}</h2>
+            <p class="text-gray-600">{cuerpo.descripcion}</p>
+            <br />
+            <h2 class="text-2xl font-bold text-lks-color text-center">Recursos: </h2>
+          </div>
+        ) : (
+          <p>No hay información</p>
+        )}
+
+        <ul class="space-y-4">
+          {recursos && recursos.length > 0 ? (
+            recursos.map((recurso) => (
+              <li class="bg-white p-4 rounded shadow hover:shadow-md transition-shadow duration-200 flex items-center">
+                <a
+                  href={recurso.enlaceFichero.startsWith('http') ? recurso.enlaceFichero : `https://${recurso.enlaceFichero}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-blue-600 hover:underline flex items-center"
+                >
+                  {recurso.titulo}
+                </a>
+                <IconoFormatoR formato={recurso.formato} />
+              </li>
+            ))
+          ) : (
+            <p>No hay recursos para esta categoría</p>
+          )}
+        </ul>
+
+        {/* Integrate the ProgressCheckbox component */}
+        <p>¿Quieres marcar tu progreso?</p>
+        <ProgressCheckbox />
+
+        <p>¿Quieres filtrar los recursos?</p>
+        <select id="filter-select" class="form-select mt-1 block w-full">
+          <option>Selecciona una opción</option>
+          <option>Popularidad</option>
+          <option>Menor tiempo</option>
+        </select>
+      </main>
+    </div>
+  </div>
+</BaseLayout>

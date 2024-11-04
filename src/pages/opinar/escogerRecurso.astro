@@ -1,0 +1,55 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import { getAllRecursos} from "../../database/consultas";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import '../../styles/formulario.css'
+import ButtonNext from "../../components/Button/ButtonNext.astro";
+
+const recursos = await getAllRecursos();
+
+---
+
+<BaseLayout title='Onboarding' permalink={'/opinar/escogerRecurso'}>
+    <SimplePageHeader
+    title='Selecciona el recurso a calificar'
+    description='En LKS Next, estamos comprometidos con el crecimiento profesional y el desarrollo de habilidades de nuestro equipo. Como parte de este compromiso, ofrecemos una variedad de recursos de aprendizaje, tanto internos como externos, incluyendo cursos y talleres diseñados para enriquecer su conocimiento y competencias. Nos gustaría conocer su opinión sobre estos recursos: si han sido útiles para desempeñar su rol dentro del equipo y para llevar a cabo sus tareas de manera efectiva. Su feedback es invaluable para nosotros, ya que nos permite evaluar y mejorar constantemente la calidad y la relevancia de las oportunidades de aprendizaje que ofrecemos.'
+
+  />
+
+
+  <form method ="POST" class="form-container" action="/api/calificar">
+    <input type="hidden" name="formType" value="escogerRecurso" />
+    <fieldset>
+        <legend>LKS Evaluación de recursos de aprendizaje</legend>
+        <label for="titulo">Escoge el recurso que has cursado:</label>
+        
+        
+        <input type="hidden" id="recursoR" name="recursoR">
+        
+        <input type="text" id="input-box" placeholder="Buscar recurso..." autocomplete="off">
+
+            <div id="custom-dropdown" class="custom-dropdown">
+                <ul id="dropdown-options" class="dropdown-options">
+                    {recursos?.map((recurso) => (
+                        <li value={recurso.idRecurso+'.' + recurso.titulo}>{recurso.titulo}</li>
+                    ))}
+                </ul>
+
+</fieldset>
+
+<ButtonNext></ButtonNext>
+
+<div id="correct-message" class="message success"></div>
+<div id="error-message" class="message error"></div>
+
+
+  </form>
+
+  <script>
+    import {  setupDropdown } from '../../utils.js';
+    
+
+    setupDropdown('input-box', 'custom-dropdown', 'recursoR');
+    </script>
+
+</BaseLayout>

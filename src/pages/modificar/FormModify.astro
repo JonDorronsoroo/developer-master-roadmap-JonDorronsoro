@@ -1,0 +1,42 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+// TODO: Cambiar titulo y descripcion
+
+/**
+ * <BaseLayout title="XXXXXXXXXXXXX">
+    <SimplePageHeader title="XXXXXXXXXXXXXX"   description="WWWWWWWWWWWWWWWWWWWW"></SimplePageHeader>
+
+</BaseLayout>
+ */
+---
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width-device-width, initial-scale-1">
+        <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    </head>
+    
+
+    <body>
+        <div id="editor">
+        <p>Hello World!</p>
+        <p>Some initial <strong>bold</strong> text</p>
+        <p><br /></p>
+      </div>
+    </body>
+
+    <!-- Include the Quill library -->
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+<!-- Initialize Quill editor -->
+<script>
+  const quill = new Quill('#editor', {
+    theme: 'snow'
+  });
+</script>
+</html>
+

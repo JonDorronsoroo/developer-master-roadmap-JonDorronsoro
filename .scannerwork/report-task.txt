@@ -1,0 +1,6 @@
+projectKey=Roadmap
+serverUrl=http://192.168.1.22//sonar
+serverVersion=10.3.0.82913
+dashboardUrl=http://192.168.1.22//sonar/dashboard?id=Roadmap
+ceTaskId=AZKVB9l6WYqKx-arol4E
+ceTaskUrl=http://192.168.1.22//sonar/api/ce/task?id=AZKVB9l6WYqKx-arol4E

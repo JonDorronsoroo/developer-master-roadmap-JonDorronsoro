@@ -1,0 +1,34 @@
+---
+import '../../styles/btnEscoger.css'
+export interface Props {
+    titulo?:string;
+  path: string;
+  text: string;
+
+
+}
+
+
+const { titulo, path, text} = Astro.props;
+---
+
+
+<div class='container flex flex-col items-center'>
+  <h1 class='text-2xl sm:text-3xl font-bold block text-center' style="font-family: 'Scope One', serif;">
+    {titulo}
+  </h1>
+</div>
+
+<div class='container mt-5 flex flex-col items-center'>
+  <br>
+  <br>
+
+  <a
+    href={path}
+    class='learn-more'
+  >
+    {text}
+  </a>
+
+  <br>
+</div>

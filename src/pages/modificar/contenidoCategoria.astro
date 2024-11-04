@@ -1,0 +1,71 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCategoriaInformacionRoadmap,} from "../../database/consultas";
+import '../../styles/formulario.css'
+import '../../components/Button/ButtonEliminar.astro'
+import ButtonEliminar from "../../components/Button/ButtonEliminar.astro";
+import '../../components/Button/ButtonSave.astro'
+import ButtonSave from "../../components/Button/ButtonSave.astro";
+
+
+const { request } = Astro;
+const url = new URL(request.url);
+const searchParams = new URLSearchParams(url.search);
+let categoriaName = searchParams.get('title');
+
+categoriaName = categoriaName?.replace(/^'|'$/g, '') || '';
+const informacion = await getCategoriaInformacionRoadmap(categoriaName || '')
+console.log(categoriaName)
+
+
+---
+<BaseLayout title='Modificar la información' permalink={'/modificar/contenidoCategoria'}>
+    <SimplePageHeader
+    title='Modifica la categoría'
+    description='Modificar la información/contenido'
+  />
+
+  <form id="categoriaModifyForm" class="form-container" >
+    <input type="hidden" name="formType" value="contenidoCategoria" />
+    <input type="hidden" name="oldCategoria" value={categoriaName} />
+<fieldset>
+      <label class="required-field" for="categoria">Título:</label>
+            <input
+                type="text"
+                id="categoria"
+                name="categoria"
+               value={informacion?.idNombre}
+                required
+                aria-required="true"
+            ></input>
+
+            <label class="required-field" for="descripcion">Descripción:</label>
+            <textarea
+                id="descripcion"
+                name="descripcion"
+              
+                rows="4"
+            cols="50"
+                required
+
+            >{informacion?.descripcion}</textarea>
+    </fieldset>
+    
+    <div class="flex space-x-40">
+        <ButtonEliminar></ButtonEliminar>
+        <ButtonSave></ButtonSave>
+        
+      </div>
+
+  <div id="correct-message" class="message success"></div>
+  <div id="error-message" class="message error"></div>
+
+  </form>
+<script>
+    import { setupFormSubmission } from "../../utils";
+
+    setupFormSubmission('categoriaModifyForm', '/api/modificar')
+</script>
+</BaseLayout>
+

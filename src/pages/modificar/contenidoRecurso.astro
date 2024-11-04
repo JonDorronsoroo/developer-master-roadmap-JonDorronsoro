@@ -1,0 +1,73 @@
+---
+import '../../styles/formulario.css'
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getRecursoById } from '../../database/consultas';
+// Get the value of the id parameter from the URL
+const { request } = Astro;
+const url = new URL(request.url);
+const searchParams = new URLSearchParams(url.search);
+const id = parseInt(searchParams.get('id') || '');
+
+
+console.log(id)
+const informacion = await getRecursoById(id);
+
+console.log(informacion)
+
+---
+
+<BaseLayout title='Modificar la información' permalink={'/modificar/contenidoRecurso'}>
+    <SimplePageHeader
+    title='Modifica la información del recurso'
+    description='Modificar la información/contenido'
+  />
+
+  <form method ="POST" class="form-container" action="/api/modificar">
+    <input type="hidden" name="formType" value="contenidoRecurso" />
+    <input type="hidden" name="idRecurso" value={id} />
+<fieldset>
+      <label class="required-field" for="recurso">Título:</label>
+            <input
+                type="text"
+                id="titulo"
+                name="titulo"
+               value={informacion?.titulo}
+                required
+                aria-required="true"
+            ></input>
+
+            <label class="required-field" for="enlace">Enlace del fichero:</label>
+            <input
+                type="text"
+                id="enlace"
+                name="enlace"
+               value={informacion?.enlaceFichero}
+                required
+                aria-required="true"
+            ></input>
+
+            <label class="required-field" for="descripcion">Descripción:</label>
+            <textarea
+                id="descripcion"
+                name="descripcion"
+              
+                rows="4"
+            cols="50"
+                required
+
+            >{informacion?.descripcion}</textarea>
+    </fieldset>
+    
+    <div class="button-container">
+      <button type="submit">Guardar</button>
+  </div>
+
+  
+
+  <div id="correct-message" class="message success"></div>
+  <div id="error-message" class="message error"></div>
+
+  </form>
+
+</BaseLayout>

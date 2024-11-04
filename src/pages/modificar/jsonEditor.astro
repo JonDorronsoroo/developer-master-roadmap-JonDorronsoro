@@ -1,0 +1,9 @@
+---
+import fs from 'fs-extra';
+import path from 'path';
+
+const htmlContent = await fs.readFile(path.resolve('src/pages/modificar/jsonEditor.html'), 'utf-8');
+---
+
+
+<div set:html={htmlContent}></div>

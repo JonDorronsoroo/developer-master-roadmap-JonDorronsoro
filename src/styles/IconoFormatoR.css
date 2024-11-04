@@ -1,0 +1,32 @@
+/* styles/IconoFormatoR.css */
+
+.formato-video {
+    font-size: 1.25rem; /* Tamaño de letra más grande */
+    color: #1E90FF;     /* Color azul llamativo */
+    font-weight: bold;  /* Texto en negrita */
+  }
+  
+  .formato-pdf {
+    font-size: 1.25rem;
+    color: #FF4500;     /* Color rojo llamativo */
+    font-weight: bold;
+  }
+  
+  .formato-imagen {
+    font-size: 1.25rem;
+    color: #32CD32;     /* Color verde llamativo */
+    font-weight: bold;
+  }
+  
+  .formato-presentacion {
+    font-size: 1.25rem;
+    color: #8A2BE2;     /* Color púrpura llamativo */
+    font-weight: bold;
+  }
+  
+  .formato-archivo {
+    font-size: 1.25rem;
+    color: #808080;     /* Color gris para formatos desconocidos */
+    font-weight: bold;
+  }
+  

@@ -1,0 +1,49 @@
+---
+import Loader from '../Loader.astro';
+import './FrameRenderer.css';
+
+
+export const prerender = false
+export interface Props {
+  resourceType: 'roadmap' | 'organigrama';
+  resourceId: string;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
+  componentesCategoriaPrimerNivel: string[];
+  componentesCategoriaSegundoNivel: [string,string][];
+  componentesCategoriaTercerNivel: [string,string][];
+  categoriaSegunRol?:string[];
+}
+
+const user= Astro.locals.user;
+if(!user){
+  return Astro.redirect("/auth/signin")
+}
+
+
+const { resourceId, resourceType,  dimensions = null, componentesCategoriaPrimerNivel, componentesCategoriaSegundoNivel,componentesCategoriaTercerNivel,categoriaSegunRol} = Astro.props;
+
+---
+
+<div
+  id='resource-svg-wrap'
+  style={dimensions
+    ? `--aspect-ratio:${dimensions.width}/${dimensions.height}`
+    : null}
+  data-resource-type={resourceType}
+  data-resource-id={resourceId}
+  data-componentes-categoria-primer-nivel={componentesCategoriaPrimerNivel}
+  data-componentes-categoria-segundo-nivel={componentesCategoriaSegundoNivel}
+  data-componentes-categoria-tercer-nivel={componentesCategoriaTercerNivel}
+  data-lista-categoria-rol={categoriaSegunRol}
+>
+
+<label id="contador" transition:persist></label>
+  <div id='resource-loader'>
+    <Loader />
+  </div>
+</div>
+
+<script  src='./renderer.ts'></script>

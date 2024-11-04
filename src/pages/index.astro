@@ -1,0 +1,12 @@
+---
+
+if (!Astro.locals.user) {
+  return Astro.redirect("/auth/signin")
+}else {
+  return Astro.redirect("/home")
+}
+---
+
+
+//TODO: cambiar el rediregir, los antiguos index ahora deben de ser home
+//TODO: Asegurarse que no pueda pasar si la cuenta no esta iniciada

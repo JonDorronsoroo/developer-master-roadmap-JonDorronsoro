@@ -1,0 +1,55 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import { getAllRecursos} from "../../database/consultas";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import '../../styles/formulario.css'
+
+const recursos = await getAllRecursos();
+
+
+---
+
+<BaseLayout title='Onboarding' permalink={'/modificar/escogerRecurso'}>
+    <SimplePageHeader
+    title='Selecciona el recurso a modificar'
+    description="Modificar cualquier error en el contenido de cualquier recurso"
+
+  />
+
+
+  <form method ="POST" class="form-container" action="/api/modificar">
+    <input type="hidden" name="formType" value="escogerRecurso" />
+    <fieldset>
+        <legend>recursos de aprendizaje</legend>
+        <label for="titulo">Modifica los apartados que desees del recurso elegido</label>
+        <input type="hidden" id="recursoR" name="recursoR">
+        
+        <input type="text" id="input-box" placeholder="Buscar recurso..." autocomplete="off">
+
+            <div id="custom-dropdown" class="custom-dropdown">
+                <ul id="dropdown-options" class="dropdown-options">
+                    {recursos?.map((recurso) => (
+                        <li value={recurso.idRecurso+'.' + recurso.titulo}>{recurso.titulo}</li>
+                    ))}
+                </ul>
+        
+        
+</fieldset>
+
+<div class="button-container">
+  <button type="submit">Next</button>
+</div>
+
+<div id="correct-message" class="message success"></div>
+<div id="error-message" class="message error"></div>
+
+  </form>
+
+  <script>
+    import {  setupDropdown } from '../../utils.js';
+    
+
+    setupDropdown('input-box', 'custom-dropdown', 'recursoR');
+    </script>
+
+</BaseLayout>

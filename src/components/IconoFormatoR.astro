@@ -1,0 +1,40 @@
+---
+import '../styles/IconoFormatoR.css';
+import '../styles/global.css'
+import './Button/ButtonProgress.astro'
+import '../styles/btnProgress.css'
+import ButtonProgress from './Button/ButtonProgress.astro';
+export interface Props {
+  formato: string | null;
+}
+
+const { formato } = Astro.props;
+---
+
+{() => {
+  switch (formato) {
+    case 'Vídeo':
+      return (
+        <span class="formato-video">{formato}</span>
+       
+      );
+    case 'PDF':
+      return (
+        <span class="formato-pdf">{formato}</span>
+      );
+    case 'Imagen':
+      return (
+        <span class="formato-imagen">{formato}</span>
+      );
+    case 'Presentación':
+      return (
+        <span class="formato-presentacion">{formato}</span>
+      );
+    default:
+      return (
+        <span class="formato-archivo">{formato || 'Archivo'}</span>
+      );
+  }
+}}
+
+<ButtonProgress></ButtonProgress>
