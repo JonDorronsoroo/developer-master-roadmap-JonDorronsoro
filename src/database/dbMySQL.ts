@@ -1,4 +1,3 @@
-
 import mysql from 'mysql2/promise';
 import { type RowDataPacket } from "mysql2"
 
@@ -6,11 +5,11 @@ import { type RowDataPacket } from "mysql2"
 
 export enum Dificultad {
   Principiante = 'Principiante',
-  Intermedio =  'Intermedio',
+  Intermedio = 'Intermedio',
   Avanzado = 'Avanzado',
 
 }
-export enum Formato{
+export enum Formato {
   PDF = 'PDF',
   Video = 'Video',
   Imagen = 'Imagen',
@@ -31,13 +30,13 @@ export enum Tipo {
 
 }
 
-export interface IRoadmapEsquema  extends RowDataPacket {
+export interface IRoadmapEsquema extends RowDataPacket {
   idRoadmap: string
   description: string
   relatedRoadmap: string
 }
 
-export interface IRol  extends RowDataPacket {
+export interface IRol extends RowDataPacket {
   idRol: string
   experiencia: string
 }
@@ -48,7 +47,7 @@ export interface IRecurso extends RowDataPacket {
   idRecurso?: number
   titulo: string
   enlaceFichero: string
-  interno:boolean
+  interno: boolean
   descripcion: string | null;
   n_Dificultad: Dificultad | null;
   tipo: Tipo | null;
@@ -84,29 +83,33 @@ export interface ICategoriaSubNivel extends RowDataPacket {
 }
 
 export interface User extends RowDataPacket {
-  id:string
-  username:string
-  password:string
-  admin:boolean
+  id: string
+  username: string
+  password: string
+  admin: boolean
+  mentor: boolean
 }
 export const prerender = false;
-
+/*
 const connectionConfig = {
+  //host: '172.20.133.21',
   host:'localhost',
   user: 'roadmap',
   password: 'roadmap',
   database: 'roadmap',
+  //database: 'roadmapcompleto',
   port: 3307,
-
+  //port:3306
 
 };
+*/
 
 const connectionPropia = {
-  host:'localhost',
-  user: 'roadmap',
-  password: 'roadmap',
-  database: 'roadmapcompleto',
-  port:3306
+  host: 'localhost',
+  user: 'root',
+  password: 'root',
+  database: 'roadmap3',
+  port: 3306
 
 };
 
@@ -115,8 +118,8 @@ const connectionPropia = {
 
 
 
-export const pool = mysql.createPool(connectionConfig);
+export const pool = mysql.createPool(connectionPropia);
 
 
 
-export {pool as db}
+export { pool as db }

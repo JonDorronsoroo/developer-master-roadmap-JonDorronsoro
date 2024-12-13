@@ -2,171 +2,67 @@
 import SimplePageHeader from "../../components/SimplePageHeader.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import '../../styles/formulario.css';
-import {getAllRecursos} from '../../database/consultas.ts';
-import {getAllCategorias} from '../../database/consultas.ts';
 
 const user = Astro.locals.user;
-if(!user){
-    return Astro.redirect("/auth/signin")
+if (!user) {
+    return Astro.redirect("/auth/signin");
 }
-
-
-const categorias = await getAllCategorias();
-var categoriasNames = categorias?.map((categoria) => categoria.idNombre);
-const recursos = await getAllRecursos();
-var recursosNames = recursos?.map((recurso)=> recurso.titulo)
-console.log(recursosNames)
 ---
 
-<BaseLayout title='Onboarding' permalink={'/enviarOpinion'}>
+<BaseLayout title="Onboarding" permalink="/addBD/addEtiqueta">
     <SimplePageHeader
-    title='Añade un nuevo recurso'
-    description='Incluir en el almacenamiento de la empresa un nuevo recurso:'
-  />
+        title="Añade una nueva etiqueta"
+        description="Añade etiquetas para clasificar y personalizar recursos, categorías o roadmaps:"
+    />
 
+    <form id="etiquetaForm" class="form-container">
+        <fieldset>
+            <label class="required-field" for="tipo">Tipo de etiqueta:</label>
+            <input
+                type="text"
+                id="tipo"
+                name="tipo"
+                required
+                placeholder="Tipo de etiqueta (e.g., Rol, Dificultad)"
+                aria-required="true"
+            />
 
-  <form id="recursoForm" class="form-container">
-    <fieldset>
-        <label class="required-field"  for="titulo" >Título:</label>
-        <input
-          type="text"
-          id="titulo"
-          name="titulo"
-          required
-          placeholder="Título del recurso" aria-required="true"
-        />
-
-        <label class="required-field" for="enlaceFichero">Enlace al fichero:</label>
-        <input
-          type="text"
-          id="enlaceFichero"
-          name="enlaceFichero"
-          required
-          placeholder="Enlace del fichero" aria-required="true"
-        />
-
-        <label class="required-field" for="interno">¿Este recurso ha sido creado por LKS?:</label>
-            <div class="radio-container" >
-                <input type="radio" id="interno" name="internoExterno" value="true" required/>
-                <label for="interno">Sí</label>
-
-                <input type="radio" id="externo" name="internoExterno" value="false" required/>
-                <label for="intermedio">No</label>
-              </div>
-        
-
-
-        <input type="hidden" id="categoria" name="categoria">
-
-        <label class="required-field" for="categoriaLabel">Elige una categoría:</label>
-        <input type="text" id="input-box" placeholder="Buscar categoría" autocomplete="off">
-
-            <div id="custom-dropdown" class="custom-dropdown">
-                <ul id="dropdown-options" class="dropdown-options">
-                    <li value="Global">Ninguna</li>
-                    {categoriasNames?.map((categoria: string) => (
-                        <li value={categoria}>{categoria}</li>
-                    ))}
-                </ul>
-            </div>
-
-          </fieldset>
+            <label class="required-field" for="valor">Valor de la etiqueta:</label>
+            <input
+                type="text"
+                id="valor"
+                name="valor"
+                required
+                placeholder="Valor de la etiqueta (e.g., Junior, Intermedio)"
+                aria-required="true"
+            />
+        </fieldset>
 
         <fieldset>
-           
-     
-        <label for="descripcion">Descripción:</label>
-        <textarea
-          id="descripcion"
-          name="descripcion"
-          cols="50"
-          rows="5"
-          placeholder="Descripción..."
-        ></textarea>
-        
+            <label for="descripcion">Descripción (opcional):</label>
+            <textarea
+                id="descripcion"
+                name="descripcion"
+                cols="50"
+                rows="5"
+                placeholder="Describe el propósito de esta etiqueta..."
+            ></textarea>
+        </fieldset>
 
-        <label for="dificultad">Nivel de dificultad:</label>
+        <div class="button-container">
+            <button type="submit">Guardar</button>
+        </div>
 
-            <div class="radio-container">
-                <input type="radio" id="principiante" name="dificultad" value="Principiante"/>
-                <label for="principiante">Principiante</label>
-                
-                <input type="radio" id="intermedio" name="dificultad" value="Intermedio"/>
-                <label for="intermedio">Intermedio</label>
-                
-                <input type="radio" id="avanzado" name="dificultad" value="Avanzado"/>
-                <label for="avanzado">Avanzado</label>
-              </div>
+        <div id="correct-message" class="message success"></div>
+        <div id="error-message" class="message error"></div>
+    </form>
 
-        <label for="idioma">Idioma:</label>
-              <select id="idioma" name="idioma" >
-                <option value="" disabled selected>Escoger idioma...</option>
-                <option value="Castellano">Castellano</option>
-                <option value="Euskera">Euskera</option>
-                <option value="Ingles">Inglés</option>
-                <option value="Otro">Otro...</option>
-              </select>
+    <script>
+        import { setupFormSubmission } from '../../utils.js';
 
-        <label for="tipo">¿Qué tipo es?:</label>
-              <select id="tipo" name="tipo" >
-                <option value="" disabled selected>Escoger tipo...</option>
-                <option value="Curso de pago ">Curso de pago</option>
-                <option value="Curso gratuito">Curso gratuito</option>
-                <option value="Webinar">Webinars</option>
-                <option value="Libro">Libro</option>
-                <option value="Guia">Guía</option>
-                <option value="Tutorial">Tutorial</option>
-                <option value="Articulo">Artículo</option>
-                <option value="Otro">Otro...</option>
-              </select>
-
-              <label for="formato">¿Qué formato tiene?:</label>
-              <select id="formato" name="formato" >
-                <option value="" disabled selected>Escoger formato...</option>
-                <option value="PDF">PDF</option>
-                <option value="Video">Vídeo</option>
-                <option value="Imagen">Imagen</option>
-                <option value="Presentacion">Presentación</option>
-                <option value="Otro">Otro...</option>
-              </select>
-
-
-            </fieldset>
-
-            <label for="otrosRecursos">¿Esta relacionado con algún otro?:</label>
-
-            <input type="hidden" id="recursoRelacion" name="recursoRelacion">
-        <input type="text" id="input-boxRecurso" placeholder="Buscar recurso relacionado..." autocomplete="off">
-
-            <div id="custom-dropdownRecurso" class="custom-dropdown">
-                <ul id="dropdown-optionsRecurso" class="dropdown-options">
-                    {recursosNames?.map((recurso: string) => (
-                        <li value={recurso}>{recurso}</li>
-                    ))}
-                </ul>
-            </div>
-
-
-            <div class="button-container">
-              <button type="submit">Guardar</button>
-          </div>
-  
-          <div id="correct-message" class="message success"></div>
-          <div id="error-message" class="message error"></div>
-</form>
-
-<script>
-import {  setupDropdown, setupFormSubmission } from '../../utils.js';
-
-// Setup form submission handling
-setupFormSubmission('recursoForm', '/api/addRecurso');
-
-// Initialize dropdowns
-setupDropdown('input-box', 'custom-dropdown', 'categoria');
-setupDropdown('input-boxRecurso', 'custom-dropdownRecurso', 'recursoRelacion');
-</script>
-
-
+        // Setup form submission handling
+        setupFormSubmission('etiquetaForm', '/api/addEtiqueta');
+    </script>
 </BaseLayout>
 
 

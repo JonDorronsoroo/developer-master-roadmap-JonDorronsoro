@@ -1,0 +1,86 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import '../../styles/formulario.css';
+
+const user = Astro.locals.user;
+if (!user) {
+    return Astro.redirect("/auth/signin");
+}
+---
+
+<BaseLayout title="Onboarding" permalink="/addBD/addEtiqueta">
+    <SimplePageHeader
+        title="Añade una nueva etiqueta"
+        description="Añade etiquetas para clasificar y personalizar recursos, categorías o roadmaps:"
+    />
+
+    <form id="etiquetaForm" class="form-container">
+        <fieldset>
+            <label class="required-field" for="tipo">Tipo de etiqueta:</label>
+            <input
+                type="text"
+                id="tipo"
+                name="tipo"
+                required
+                placeholder="Tipo de etiqueta (e.g., Rol, Dificultad)"
+                aria-required="true"
+            />
+
+            <label class="required-field" for="valor">Valor de la etiqueta:</label>
+            <input
+                type="text"
+                id="valor"
+                name="valor"
+                required
+                placeholder="Valor de la etiqueta (e.g., Junior, Intermedio)"
+                aria-required="true"
+            />
+        </fieldset>
+
+        <div class="button-container">
+            <button type="submit">Guardar</button>
+        </div>
+
+        <div id="correct-message" class="message success" style="display: none;">Etiqueta añadida con éxito.</div>
+        <div id="error-message" class="message error" style="display: none;">Hubo un error al añadir la etiqueta.</div>
+    </form>
+
+    <script>
+        document.getElementById('etiquetaForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            // Ocultar mensajes anteriores
+            const successMessage = document.getElementById('correct-message');
+            const errorMessage = document.getElementById('error-message');
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            // Recoger los valores del formulario
+            const tipo = document.getElementById('tipo').value;
+            const valor = document.getElementById('valor').value;
+
+            try {
+                const response = await fetch('/api/addEtiqueta', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ tipo, valor }),
+                });
+
+                if (response.ok) {
+                    successMessage.style.display = 'block';
+                    this.reset(); // Limpiar el formulario
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error en el servidor:', errorData.message);
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
+</BaseLayout>

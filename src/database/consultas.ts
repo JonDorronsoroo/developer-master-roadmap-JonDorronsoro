@@ -1,10 +1,12 @@
-import { type ResultSetHeader} from "mysql2"
+import { type ResultSetHeader } from "mysql2"
 
 import { type IRecurso, db, type IRoadmapEsquema, type ICategoriaSubNivel } from "./dbMySQL";
-import { type ICategoria , type IRol,type User} from "./dbMySQL";
+import { type ICategoria, type IRol, type User } from "./dbMySQL";
 import { generateId } from "lucia";
-import {type IRoadmapComponentePrioridad}   from "./dbMySQL";
-import {ER_DUP_ENTRY} from 'mysql-error-keys'
+import { type IRoadmapComponentePrioridad } from "./dbMySQL";
+import { ER_DUP_ENTRY } from 'mysql-error-keys'
+import type { RowDataPacket } from "mysql2";
+
 
 
 
@@ -17,75 +19,270 @@ export class ProblemaBD extends Error {
     constructor(message: string | undefined) {
         super(message);
         this.name = 'DatabaseException';
-        
+
     }
 }
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  INSERT INTO BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  INSERT INTO BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   /**  export const inserUsuario= async (email: string, password: string) => {
-            const connection = await db.getConnection();
-            try {
-                const query = `INSERT INTO Usuario (email, password) VALUES ('${email}', '${password}')`;
-                const [result] = await connection.execute<ResultSetHeader>(query, [email, password]);
-                return result.insertId;
-            } catch (error) {
-                console.error('Error adding user:', error);
+/**  export const inserUsuario= async (email: string, password: string) => {
+         const connection = await db.getConnection();
+         try {
+             const query = `INSERT INTO Usuario (email, password) VALUES ('${email}', '${password}')`;
+             const [result] = await connection.execute<ResultSetHeader>(query, [email, password]);
+             return result.insertId;
+         } catch (error) {
+             console.error('Error adding user:', error);
 
-            }finally {
-                connection.release();
-            }
-    }*/
-    export const insertRelacionRoadmapCategoria = async (roadmap: string, categoria: string, prioridad?: number) => {
-        const connection = await db.getConnection();
-        try {
-            let query: string;
-            let result: ResultSetHeader; // Change the type annotation to ResultSetHeader
-            if(prioridad){
-                 query = `INSERT INTO Roadmap_categoria (idRoadmap, componenteCategoria, prioridad) VALUES ('${roadmap}', '${categoria}', '${prioridad}')`;
-                [result] = await connection.execute<ResultSetHeader>(query, [roadmap, categoria, prioridad]);
-            }else{
-                query = `INSERT INTO Roadmap_categoria  (idRoadmap, componenteCategoria) VALUES ('${roadmap}', '${categoria}')`;
-                [result] = await connection.execute<ResultSetHeader>(query, [roadmap, categoria]);
-            }
-    
-            return result.insertId;
-        } catch (error) {
-            console.error('Error adding relacion roadmap-categoria:', error);
-        }finally {
-            connection.release();
-        }
+         }finally {
+             connection.release();
+         }
+ }*/
+
+export const insertEtiquetaConocimientoBase = async (valorEtiqueta: string) => {
+    const connection = await db.getConnection();
+    try {
+        const query: string = `INSERT INTO etiqueta (tipo, valorEtiqueta) VALUES ('Conocimiento del Roadmap', ?)`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [valorEtiqueta]);
+
+        return result.insertId; // Devuelve el ID de la etiqueta insertada
+    } catch (error) {
+        console.error('Error adding etiqueta Conocimiento Base:', error);
+        throw error; // Lanza el error para manejarlo fuera
+    } finally {
+        connection.release(); // Asegura liberar la conexión
     }
+};
 
-    export const insertNuevoRoadmap = async (roadmap: string, descripcion: string, relatedRoadmap?:string) => {
-        const connection = await db.getConnection();
-        try {
-            let result: ResultSetHeader; 
-            let query: string;
-            if(relatedRoadmap){
-                query = `INSERT INTO EsquemaRoadmap (idRoadmap,  description, relatedRoadmap) VALUES ('${roadmap}', '${descripcion}', '${relatedRoadmap}')`;
-                [result] = await connection.execute<ResultSetHeader>(query, [roadmap,  descripcion, relatedRoadmap]);
-            }else{
-                query = `INSERT INTO EsquemaRoadmap (idRoadmap,description) VALUES ('${roadmap}', '${descripcion}')`;
-                [result] = await connection.execute<ResultSetHeader>(query, [roadmap,   descripcion]);
-
-            }
-            
-            
-            
-            return result.insertId
-        } catch (error) {
-            console.error('Error adding a new roadmap', error);
-        }finally {
-            connection.release();
-        }
+export const existsEtiquetaConocimientoBase = async (valorEtiqueta: string): Promise<boolean> => {
+    const connection = await db.getConnection();
+    try {
+        const query: string = `SELECT COUNT(*) as count FROM etiqueta WHERE tipo = 'Conocimiento del Roadmap' AND valorEtiqueta = ?`;
+        const [rows] = await connection.execute<RowDataPacket[]>(query, [valorEtiqueta]);
+        const count = rows[0].count;
+        return count > 0; // Devuelve true si existe al menos una coincidencia
+    } catch (error) {
+        console.error('Error checking if etiqueta Conocimiento Base exists:', error);
+        throw error; // Lanza el error para manejarlo fuera
+    } finally {
+        connection.release(); // Asegura liberar la conexión
     }
+};
+
+export const getEtiquetaId = async (valorEtiqueta: string): Promise<number> => {
+    const connection = await db.getConnection();
+    try {
+        const query = `SELECT idEtiqueta FROM etiqueta WHERE tipo = 'Conocimiento del Roadmap' AND valorEtiqueta = ?`;
+        const [rows] = await connection.execute<RowDataPacket[]>(query, [valorEtiqueta]);
+        return rows[0]?.idEtiqueta || null; // Devuelve el idEtiqueta o null si no existe
+    } catch (error) {
+        console.error('Error al obtener el idEtiqueta:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
 
 
-export const insertResource = async (titulo:string, enlaceFichero:string,interno:boolean,descripcion:string | null,n_Dificultad:string | null,tipo:string | null,formato:string | null,idioma:string | null,deInteres:number | null ) => {
+
+export const insertEsquemaRoadmapEtiqueta = async (idEsquema: string, idEtiqueta: number) => {
+    const connection = await db.getConnection();
+    try {
+        const query: string = `INSERT INTO esquemaroadmap_etiqueta (idEsquema, idEtiqueta) VALUES (?, ?)`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [idEsquema, idEtiqueta]);
+
+        return result.insertId; // Devuelve el ID generado si corresponde
+    } catch (error) {
+        console.error('Error adding esquema-roadmap-etiqueta relation:', error);
+        throw error; // Lanza el error para manejarlo fuera
+    } finally {
+        connection.release(); // Asegura liberar la conexión
+    }
+};
+
+/*
+export const getRoadmapsByEtiqueta = async (valorEtiqueta: string) => {
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT er.idRoadmap
+            FROM esquemaroadmap er
+            INNER JOIN esquemaroadmap_etiqueta ere ON er.idRoadmap = ere.idEsquema
+            INNER JOIN etiqueta e ON ere.idEtiqueta = e.idEtiqueta
+            WHERE e.tipo = 'Conocimiento Base' AND e.valorEtiqueta = ?;
+        `;
+        const [rows] = await connection.execute(query, [valorEtiqueta]);
+        return rows; // Devuelve los roadmaps encontrados
+    } catch (error) {
+        console.error('Error fetching roadmaps by etiqueta:', error);
+        throw error; // Maneja el error en el nivel superior
+    } finally {
+        connection.release();
+    }
+};
+*/
+
+export const getElementoReutilizable = async (valorEtiqueta: string) => {
+    const connection = await db.getConnection(); // Obtener la conexión a la base de datos
+    try {
+        const query = `
+            SELECT er.idRoadmap
+            FROM elementoreutilizable er
+            INNER JOIN etiqueta e ON er.etiqueta = e.idEtiqueta
+            WHERE e.tipo = 'Conocimiento del Roadmap' AND e.valorEtiqueta = ?;
+        `;
+        const [rows] = await connection.execute(query, [valorEtiqueta]);
+        return rows; // Devuelve los resultados encontrados
+    } catch (error) {
+        console.error("Error fetching idRoadmap by conocimiento base:", error);
+        throw error; // Maneja el error en el nivel superior
+    } finally {
+        connection.release(); // Liberar la conexión a la base de datos
+    }
+};
+
+
+
+
+
+
+export const insertRelacionRoadmapCategoria = async (roadmap: string, categoria: string, prioridad?: number) => {
+    const connection = await db.getConnection();
+    try {
+        let query: string;
+        let result: ResultSetHeader; // Change the type annotation to ResultSetHeader
+        if (prioridad) {
+            query = `INSERT INTO Roadmap_categoria (idRoadmap, componenteCategoria, prioridad) VALUES ('${roadmap}', '${categoria}', '${prioridad}')`;
+            [result] = await connection.execute<ResultSetHeader>(query, [roadmap, categoria, prioridad]);
+        } else {
+            query = `INSERT INTO Roadmap_categoria  (idRoadmap, componenteCategoria) VALUES ('${roadmap}', '${categoria}')`;
+            [result] = await connection.execute<ResultSetHeader>(query, [roadmap, categoria]);
+        }
+
+        return result.insertId;
+    } catch (error) {
+        console.error('Error adding relacion roadmap-categoria:', error);
+    } finally {
+        connection.release();
+    }
+}
+
+export const insertNuevoRoadmap = async (roadmap: string, descripcion: string, relatedRoadmap?: string) => {
+    const connection = await db.getConnection();
+    try {
+        // Verificar si el roadmap ya existe
+        const [existingRoadmaps] = await connection.query(`SELECT idRoadmap FROM EsquemaRoadmap WHERE idRoadmap = ?`, [roadmap]);
+        if (existingRoadmaps && Array.isArray(existingRoadmaps) && existingRoadmaps.length > 0) {
+            const error = new Error("Roadmap duplicado");
+            throw error; // Asegúrate de lanzar el error
+
+        }
+
+        // Insertar el roadmap si no existe
+        let result: ResultSetHeader;
+        let query: string;
+        if (relatedRoadmap) {
+            query = `INSERT INTO EsquemaRoadmap (idRoadmap, description, relatedRoadmap) VALUES (?, ?, ?)`;
+            [result] = await connection.execute<ResultSetHeader>(query, [roadmap, descripcion, relatedRoadmap]);
+        } else {
+            query = `INSERT INTO EsquemaRoadmap (idRoadmap, description) VALUES (?, ?)`;
+            [result] = await connection.execute<ResultSetHeader>(query, [roadmap, descripcion]);
+        }
+        return result.insertId;
+    } catch (error) {
+        console.error('Error adding a new roadmap', error);
+        throw error; // Propagar el error para manejarlo en el cliente
+    } finally {
+        connection.release();
+    }
+}
+
+export const insertElementoReutilizable = async (idDelRoadmap: string, idEtiqueta: number) => {
+    const connection = await db.getConnection();
+    try {
+        // Verificar si el idDelRoadmap existe en la tabla EsquemaRoadmap
+        const [existingRoadmap] = await connection.query(
+            `SELECT idRoadmap FROM EsquemaRoadmap WHERE idRoadmap = ?`,
+            [idDelRoadmap]
+        );
+        if (!existingRoadmap || !Array.isArray(existingRoadmap) || existingRoadmap.length === 0) {
+            throw new Error(`El idRoadmap '${idDelRoadmap}' no existe en la tabla EsquemaRoadmap.`);
+        }
+
+        // Verificar si el idEtiqueta existe en la tabla Etiqueta
+        const [existingEtiqueta] = await connection.query(
+            `SELECT idEtiqueta FROM Etiqueta WHERE idEtiqueta = ?`,
+            [idEtiqueta]
+        );
+        if (!existingEtiqueta || !Array.isArray(existingEtiqueta) || existingEtiqueta.length === 0) {
+            throw new Error(`El idEtiqueta '${idEtiqueta}' no existe en la tabla Etiqueta.`);
+        }
+
+        // Insertar el nuevo elemento reutilizable
+        const query = `INSERT INTO elementoReutilizable (idRoadmap, etiqueta) VALUES (?, ?)`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [idDelRoadmap, idEtiqueta]);
+
+        // Recuperar el idElementoReutilizable insertado
+        const idElementoReutilizable = result.insertId;
+
+        return idElementoReutilizable; // Devuelve el ID del nuevo registro
+    } catch (error) {
+        console.error('Error al insertar un nuevo elemento reutilizable:', error);
+        throw error; // Propagar el error para manejarlo en el cliente
+    } finally {
+        connection.release(); // Liberar la conexión
+    }
+};
+
+
+export async function insertStep(
+    numeroStep: string,
+    idRoadmap: string,
+    idCategoria: string | null,
+    idElemento: string | null
+): Promise<void> {
+    const connection = await db.getConnection();
+
+    try {
+        // Validación lógica: Un Step debe ser o una categoría o un elemento reutilizable, no ambos.
+        if ((idCategoria && idElemento) || (!idCategoria && !idElemento)) {
+            throw new Error(
+                "Un Step debe ser o una categoría o un elemento reutilizable, no ambos ni ninguno."
+            );
+        }
+
+        const safeNumeroStep = numeroStep ?? null;
+        const safeIdRoadmap = idRoadmap ?? null;
+        const safeIdCategoria = idCategoria ?? null;
+        const safeIdElemento = idElemento ?? null;
+
+        const query = `
+            INSERT INTO Step (numeroStep, idRoadmap, idCategoria, idElemento)
+            VALUES (?, ?, ?, ?)
+        `;
+        await connection.execute(query, [safeNumeroStep, safeIdRoadmap, safeIdCategoria, safeIdElemento]);
+        console.log(
+            `Step insertado: numeroStep=${safeNumeroStep}, idRoadmap=${safeIdRoadmap}, idCategoria=${safeIdCategoria}, idElemento=${safeIdElemento}`
+        );
+    } catch (error) {
+        console.error("Error al insertar el step:", error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+}
+
+
+
+
+
+
+
+
+export const insertResource = async (titulo: string, enlaceFichero: string, interno: boolean, descripcion: string | null, n_Dificultad: string | null, tipo: string | null, formato: string | null, idioma: string | null, deInteres: number | null) => {
     const connection = await db.getConnection();
     const internoExterno = interno ? 1 : 0;
     const dificultad = n_Dificultad ? `'${n_Dificultad}'` : null;
@@ -95,126 +292,145 @@ export const insertResource = async (titulo:string, enlaceFichero:string,interno
     const deInteresRecurso = deInteres ? `'${deInteres}'` : null;
 
     try {
-        
+
         const query = `INSERT INTO Recurso (titulo, enlaceFichero,interno,descripcion,n_dificultad,tipo,formato,idioma,deInteres) VALUES ('${titulo}', '${enlaceFichero}','${internoExterno}','${descripcion}',${dificultad},${tipoRecurso},${formatoRecurso},${idiomaRecurso},${deInteresRecurso})`;
-        const [result] = await connection.execute<ResultSetHeader>(query, [titulo, enlaceFichero, internoExterno,descripcion, dificultad, tipoRecurso, formatoRecurso,idiomaRecurso,deInteres]);
-        
+        const [result] = await connection.execute<ResultSetHeader>(query, [titulo, enlaceFichero, internoExterno, descripcion, dificultad, tipoRecurso, formatoRecurso, idiomaRecurso, deInteres]);
+
         return result.insertId;
     } catch (error) {
         const errorDuplicate: MyErrorEvent = {
-                code: 11062,
-                message: ER_DUP_ENTRY
-                
+            code: 11062,
+            message: ER_DUP_ENTRY
+
         };
         throw errorDuplicate
-        }finally {
+    } finally {
         connection.release();
-        }
+    }
 
 }
 
 
 export const insertRelacionRecursoCategoria = async (idRecurso: number, idNombre: string) => {
     const connection = await db.getConnection();
-    try{
-        
+    try {
+
         const query = `INSERT INTO Recurso_categoria (idRecurso, idNombre) VALUES ('${idRecurso}', '${idNombre}')`;
         const [result] = await connection.execute<ResultSetHeader>(query, [idRecurso, idNombre]);
-        
+
         return result.insertId;
 
     } catch (error) {
         console.error('Error adding resource:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
 }
 
-export const insertCategoria = async (nombre: string, descripcion:string, superior:string,) => {
+export const insertCategoria = async (nombre: string, descripcion: string, superior: string,) => {
     const connection = await db.getConnection();
     try {
 
         const query = `INSERT INTO Categoria (idNombre, descripcion, categoriaSuperior) VALUES ('${nombre}','${descripcion}', '${superior}')`;
-        const [result] = await connection.execute<ResultSetHeader>(query, [nombre, descripcion,superior]);
-        
+        const [result] = await connection.execute<ResultSetHeader>(query, [nombre, descripcion, superior]);
+
         return nombre;
     } catch (error) {
         const errorDuplicate: MyErrorEvent = {
-                code: 11062,
-                message: ER_DUP_ENTRY
-                
+            code: 11062,
+            message: ER_DUP_ENTRY
+
         };
         throw errorDuplicate
-        }finally {
-        connection.release();
-    }
-    }
-
-    export const insertCategoriaRol = async (categoria:string, rol:string) => {
-        const connection = await db.getConnection();
-        try {
-    
-            const query = `INSERT INTO Categoria_rol (idCategoria, idRol) VALUES ('${categoria}','${rol}')`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [categoria, rol]);
-            
-            return result;
-        } catch (error) {
-            const errorDuplicate: MyErrorEvent = {
-                    code: 11062,
-                    message: ER_DUP_ENTRY
-                    
-            };
-            throw errorDuplicate
-            }finally {
-            connection.release();
-        }
-        }
-
-    export const insertUsuario = async (id:string, username:string,password:string) => {
-        const connection = await db.getConnection();
-        try {
-            
-            const query = `INSERT INTO user (id, username, password) VALUES ('${id}','${username}', '${password}')`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [id, username, password]);
-            
-            return result;
-        } catch (error) {
-            const errorDuplicate: MyErrorEvent = {
-                code: 11062,
-                message: ER_DUP_ENTRY
-                
-        };
-        throw errorDuplicate
-    }finally {
+    } finally {
         connection.release();
     }
 }
 
-export const insertAdmin = async (id:string, username:string,password:string, admin:1) => {
+export const insertCategoriaRol = async (categoria: string, rol: string) => {
     const connection = await db.getConnection();
     try {
-        
-        const query = `INSERT INTO user (id, username, password, admin) VALUES ('${id}','${username}', '${password}', '${admin}')`;
-        const [result] = await connection.execute<ResultSetHeader>(query, [id, username, password]);
-        
+
+        const query = `INSERT INTO Categoria_rol (idCategoria, idRol) VALUES ('${categoria}','${rol}')`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [categoria, rol]);
+
         return result;
     } catch (error) {
         const errorDuplicate: MyErrorEvent = {
             code: 11062,
             message: ER_DUP_ENTRY
-            
-    };
-    throw errorDuplicate
-}finally {
-    connection.release();
+
+        };
+        throw errorDuplicate
+    } finally {
+        connection.release();
+    }
 }
+
+export const insertUsuario = async (id: string, username: string, password: string) => {
+    const connection = await db.getConnection();
+    try {
+
+        const query = `INSERT INTO user (id, username, password) VALUES ('${id}','${username}', '${password}')`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [id, username, password]);
+
+        return result;
+    } catch (error) {
+        const errorDuplicate: MyErrorEvent = {
+            code: 11062,
+            message: ER_DUP_ENTRY
+
+        };
+        throw errorDuplicate
+    } finally {
+        connection.release();
+    }
 }
 
+export const insertAdmin = async (id: string, username: string, password: string, admin: 1) => {
+    const connection = await db.getConnection();
+    try {
+
+        const query = `INSERT INTO user (id, username, password, admin) VALUES ('${id}','${username}', '${password}', '${admin}')`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [id, username, password]);
+
+        return result;
+    } catch (error) {
+        const errorDuplicate: MyErrorEvent = {
+            code: 11062,
+            message: ER_DUP_ENTRY
+
+        };
+        throw errorDuplicate
+    } finally {
+        connection.release();
+    }
+}
+
+export const insertMentor = async (id: string, username: string, password: string, mentor: 1) => {
+    const connection = await db.getConnection();
+    try {
+        const query = `INSERT INTO user (id, username, password, mentor) VALUES ('${id}', '${username}', '${password}', '${mentor}')`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [id, username, password, mentor]);
+
+        return result;
+    } catch (error) {
+        const errorDuplicate: MyErrorEvent = {
+            code: 11062,
+            message: "ER_DUP_ENTRY",
+        };
+        throw errorDuplicate;
+    } finally {
+        connection.release();
+    }
+};
 
 
-export const insertOpinionExterno = async (user: string, idRecurso:number, fecha:String, valoracionGlobal:number, dificultad:number, topTema:string, problematico:number, n_beneficioso:number,
-    recomendado:number, tiempo:number, resolutivo:number, problema:string, extra: string
+
+
+export const insertOpinionExterno = async (user: string, idRecurso: number, fecha: String, valoracionGlobal: number, dificultad: number, topTema: string, problematico: number, n_beneficioso: number,
+    recomendado: number, tiempo: number, resolutivo: number, problema: string, extra: string
 ) => {
     const connection = await db.getConnection();
     try {
@@ -226,26 +442,548 @@ export const insertOpinionExterno = async (user: string, idRecurso:number, fecha
         const [result] = await connection.execute<ResultSetHeader>(query, [idOpinion, user, idRecurso, fecha, valoracionGlobal, dificultad, topTema, problematico, n_beneficioso,
             recomendado, tiempo, resolutivo, problema, extra
         ]);
-        
+
         return result;
-    } catch (error){
+    } catch (error) {
         console.log(error)
         throw new ProblemaBD('Fallo en insertar la opinion')
-}finally {
-    connection.release();
+    } finally {
+        connection.release();
+    }
 }
-}
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  GET FROM BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-export const getCategoriasDeXroadmapSegunZrol= async(roadmap:string, rol:string)=>{
+export const insertEtiqueta = async (tipo: string, valor: string) => {
     const connection = await db.getConnection();
 
-    try{
+    try {
+        // Verificar si la etiqueta ya existe
+        const checkQuery = `SELECT COUNT(*) AS count FROM Etiqueta WHERE tipo = '${tipo}' AND valorEtiqueta = '${valor}'`;
+        const [rows]: any = await connection.execute(checkQuery);
+
+        if (rows[0].count > 0) {
+            throw new Error("Etiqueta duplicada");
+        }
+
+        // Insertar la etiqueta si no es duplicada
+        const query = `INSERT INTO Etiqueta (tipo, valorEtiqueta) VALUES ('${tipo}', '${valor}')`;
+        const [result]: any = await connection.execute(query);
+
+        return result.insertId;
+    } catch (error) {
+        console.error("Error al insertar la etiqueta:", error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+export const assignRoadmap = async (
+    idRoadmap: string,
+    idNewcomer: string,
+    idMentor: string
+) => {
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            INSERT INTO RoadMapAsignado 
+            (idRoadmap, idNewcomer, idMentor, fechaAsignado, porcentajeCompletado, stepActual) 
+            VALUES (?, ?, ?, NOW(), 0.00, 1)
+        `;
+
+        const [result] = await connection.execute<ResultSetHeader>(query, [
+            idRoadmap,
+            idNewcomer,
+            idMentor,
+        ]);
+
+        return result;
+    } catch (error: any) {
+        console.error("Error durante la asignación:", error);
+
+        // Verificar el tipo de error
+        if (error.errno === 1062 || error.code === "ER_DUP_ENTRY") {
+            throw {
+                code: 11062,
+                message: "La asignación ya existe.",
+            };
+        } else {
+            throw error; // Re-lanza cualquier otro error inesperado
+        }
+    } finally {
+        connection.release(); // Liberar la conexión
+    }
+};
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  GET FROM BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
+export const getCategoriasDeRoadmap = async (roadmap: string) => {
+    const connection = await db.getConnection();
+
+    try {
+        const query = `
+            SELECT DISTINCT Categoria.idNombre, Categoria.nombre
+            FROM Categoria
+            JOIN Roadmap_categoria ON Categoria.idNombre = Roadmap_categoria.componenteCategoria
+            WHERE Roadmap_categoria.idRoadmap = ?
+        `;
+
+        const [rows] = await connection.execute<ICategoria[]>(query, [roadmap]);
+        console.log('Categorias asociadas al roadmap:', rows);
+        return rows;
+
+    } catch (error) {
+        console.error('Error al obtener las categorías del roadmap:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+*/
+
+export const getRoadmapsAsignadosByMentor = async (idMentor: string) => {
+    const connection = await db.getConnection();
+    try {
+        console.log("Iniciando consulta para roadmaps asignados del mentor:", idMentor);
+
+        const query = `
+            SELECT 
+                ra.idRoadmapAsignado,
+                ra.idRoadmap,
+                er.idRoadmap AS nombreRoadmap,
+                ra.idNewcomer,
+                ra.fechaAsignado,
+                ra.fechaCompletado,
+                ra.porcentajeCompletado,
+                ra.stepActual,
+                ra.fechaUltimoAcceso
+            FROM 
+                roadmapasignado ra
+            JOIN 
+                esquemaRoadmap er ON ra.idRoadmap = er.idRoadmap
+            WHERE 
+                ra.idMentor = ?;
+        `;
+        const [rows] = await connection.execute(query, [idMentor]);
+
+        console.log("Resultados de la consulta para mentor:", rows);
+        return rows;
+    } catch (error) {
+        console.error("Error en la consulta SQL para mentor:", error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+export const getRoadmapsAsignadosNewcomer = async (idNewcomer: string) => {
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT 
+                ra.idRoadmap,
+                er.idRoadmap AS nombreRoadmap,
+                ra.fechaAsignado,
+                ra.fechaCompletado,
+                ra.porcentajeCompletado,
+                ra.stepActual,
+                ra.fechaUltimoAcceso
+            FROM 
+                roadmapasignado ra
+            JOIN 
+                esquemaRoadmap er ON ra.idRoadmap = er.idRoadmap
+            WHERE 
+                ra.idNewcomer = ?;
+        `;
+        const [rows] = await connection.execute(query, [idNewcomer]);
+        return rows;
+    } catch (error) {
+        console.error("Error obteniendo roadmaps asignados:", error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+
+export const getCategoriasDeRoadmap = async (roadmapId: string) => {
+    const connection = await db.getConnection();
+
+    try {
+        const query = `
+            SELECT DISTINCT s.idCategoria
+            FROM step s
+            JOIN esquemaroadmap er ON s.idRoadmap = er.idRoadmap
+            WHERE er.idRoadmap = ?
+        `;
+
+        const [rows] = await connection.execute(query, [roadmapId]);
+        console.log('Categorías asociadas al roadmap:', rows);
+        return rows;
+
+    } catch (error) {
+        console.error('Error al obtener las categorías del roadmap:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+
+//jon en aldaketak eta kontsultak 
+
+export const getEtiquetas = async () => {
+    const connection = await db.getConnection();
+    try {
+        const query = `SELECT * FROM Etiqueta`;
+        const [rows] = await connection.execute(query);
+
+        return rows || [];
+    } catch (error) {
+        console.error('Error obteniendo todas las etiquetas:', error);
+        return [];
+    } finally {
+        connection.release();
+    }
+};
+
+export const eliminarEtiqueta = async (valorEtiqueta: string) => {
+    if (typeof valorEtiqueta !== 'string') {
+        throw new Error(`El valor proporcionado debe ser un string. Tipo recibido: ${typeof valorEtiqueta}`);
+    }
+
+    const connection = await db.getConnection();
+    try {
+        const query = `DELETE FROM Etiqueta WHERE valorEtiqueta = ?`;
+        await connection.execute(query, [valorEtiqueta]); // Ejecuta la consulta
+
+        console.log(`Etiqueta con valor "${valorEtiqueta}" eliminada correctamente.`);
+    } catch (error) {
+        console.error(`Error eliminando la etiqueta con valor "${valorEtiqueta}":`, error);
+        throw error;
+    } finally {
+        connection.release(); // Asegura que la conexión se libere
+    }
+};
+
+
+
+
+
+
+export const getEtiquetasRol = async () => {
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT valorEtiqueta
+            FROM etiqueta 
+            WHERE tipo = 'rol' 
+        `;
+        const [rows] = await connection.execute(query);
+
+        return rows || [];
+    } catch (error) {
+        console.error('Error getting etiquetas de tipo rol:', error);
+        return [];
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+
+export async function getEtiquetasDificultad() {
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT valorEtiqueta
+            FROM etiqueta 
+            WHERE tipo = 'Dificultad' ;
+        `;
+        const [rows] = await connection.execute(query);
+
+        return rows || [];
+    } catch (error) {
+        console.error('Error getting etiquetas de tipo dificultad:', error);
+        return [];
+    } finally {
+        connection.release();
+    }
+
+};
+
+// Consulta para obtener las categorías de nivel 1 según el rol y la dificultad seleccionados
+
+export const categoriasNivel1segunEtiquetas = async (
+    roles: string[],
+    dificultades: string[]
+) => {
+    console.log("Roles recibidos:", roles);
+    console.log("Dificultades recibidas:", dificultades);
+
+    const connection = await db.getConnection();
+    try {
+        // Construimos la consulta
+        const query = `
+            SELECT DISTINCT categoria.*
+            FROM categoria
+            INNER JOIN categoria_etiqueta AS ce_rol 
+                ON categoria.idNombre = ce_rol.idNombre
+            INNER JOIN etiqueta AS e_rol 
+                ON ce_rol.idEtiqueta = e_rol.idEtiqueta 
+                AND e_rol.tipo = 'rol' 
+                AND e_rol.valorEtiqueta IN (${roles.map(() => "?").join(",")})
+            INNER JOIN categoria_etiqueta AS ce_dif 
+                ON categoria.idNombre = ce_dif.idNombre
+            INNER JOIN etiqueta AS e_dif 
+                ON ce_dif.idEtiqueta = e_dif.idEtiqueta 
+                AND e_dif.tipo = 'dificultad' 
+                AND e_dif.valorEtiqueta IN (${dificultades.map(() => "?").join(",")})
+            WHERE categoria.categoriaSuperior = 'Global'
+            ORDER BY categoria.idNombre ASC
+        `;
+
+        // Fusionamos los arrays de roles y dificultades para usarlos como parámetros
+        const params = [...roles, ...dificultades];
+
+        // Ejecutamos la consulta con los parámetros
+        const [rows] = await connection.execute(query, params);
+
+        return rows || [];
+    } catch (error) {
+        console.error(
+            "Error obteniendo categorías según roles y dificultades:",
+            error
+        );
+        return [];
+    } finally {
+        connection.release();
+        console.log("Consulta finalizada");
+    }
+};
+/*
+export const categoriasNivel2segunEtiquetas = async (roles: string[], dificultades: string[], categoriasNivel1: string[]) => {
+    console.log("Roles recibidos:", roles);
+    console.log("Dificultades recibidas:", dificultades);
+    console.log("Categorías de nivel 1 recibidas:", categoriasNivel1);
+
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT DISTINCT categoria.*
+            FROM categoria
+            INNER JOIN categoria_etiqueta AS ce_rol 
+                ON categoria.idNombre = ce_rol.idNombre
+            INNER JOIN etiqueta AS e_rol 
+                ON ce_rol.idEtiqueta = e_rol.idEtiqueta 
+                AND e_rol.tipo = 'rol' 
+                AND e_rol.valorEtiqueta IN (${roles.map(() => "?").join(",")})
+            INNER JOIN categoria_etiqueta AS ce_dif 
+                ON categoria.idNombre = ce_dif.idNombre
+            INNER JOIN etiqueta AS e_dif 
+                ON ce_dif.idEtiqueta = e_dif.idEtiqueta 
+                AND e_dif.tipo = 'dificultad' 
+                AND e_dif.valorEtiqueta IN (${dificultades.map(() => "?").join(",")})
+            WHERE categoria.categoriaSuperior IN (${categoriasNivel1.map(() => "?").join(",")})
+            ORDER BY categoria.idNombre ASC;
+        `;
+
+        const params = [...roles, ...dificultades, ...categoriasNivel1];
+        console.log("Parámetros utilizados:", params);
+
+        const [rows] = await connection.execute(query, params);
+
+        console.log("Resultados obtenidos:", rows);
+        return rows || [];
+    } catch (error) {
+        console.error("Error obteniendo categorías de nivel 2 según rol, dificultad y nivel 1:", error);
+        return [];
+    } finally {
+        connection.release();
+        console.log("Consulta completada");
+    }
+};
+*/
+export const categoriasNivel2segunEtiquetas = async (
+    roles: string[],
+    dificultades: string[],
+    categoriaNivel1: string // Una sola categoría de nivel 1
+) => {
+    console.log("Roles recibidos:", roles);
+    console.log("Dificultades recibidas:", dificultades);
+    console.log("Categoría de nivel 1 recibida:", categoriaNivel1);
+
+    // Validar que los parámetros no estén vacíos
+    if (roles.length === 0 || dificultades.length === 0 || !categoriaNivel1) {
+        console.warn("Uno o más parámetros están vacíos. No se puede ejecutar la consulta.");
+        return [];
+    }
+
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT DISTINCT categoria.*
+            FROM categoria
+            INNER JOIN categoria_etiqueta AS ce_rol 
+                ON categoria.idNombre = ce_rol.idNombre
+            INNER JOIN etiqueta AS e_rol 
+                ON ce_rol.idEtiqueta = e_rol.idEtiqueta 
+                AND e_rol.tipo = 'rol' 
+                AND e_rol.valorEtiqueta IN (${roles.map(() => "?").join(",")})
+            INNER JOIN categoria_etiqueta AS ce_dif 
+                ON categoria.idNombre = ce_dif.idNombre
+            INNER JOIN etiqueta AS e_dif 
+                ON ce_dif.idEtiqueta = e_dif.idEtiqueta 
+                AND e_dif.tipo = 'dificultad' 
+                AND e_dif.valorEtiqueta IN (${dificultades.map(() => "?").join(",")})
+            WHERE categoria.categoriaSuperior = ? -- Una sola categoría de nivel 1
+            ORDER BY categoria.idNombre ASC;
+        `;
+
+        // Parámetros de la consulta
+        const params = [...roles, ...dificultades, categoriaNivel1];
+        console.log("Parámetros utilizados:", params);
+
+        // Ejecutar la consulta
+        const [rows] = await connection.execute(query, params);
+
+        console.log("Resultados obtenidos:", rows);
+        return rows || [];
+    } catch (error) {
+        console.error(
+            "Error obteniendo categorías de nivel 2 según rol, dificultad y categoría de nivel 1:",
+            error
+        );
+        throw new Error("Error al obtener las categorías de nivel 2.");
+    } finally {
+        connection.release();
+        console.log("Conexión liberada.");
+    }
+};
+/*
+export const categoriasNivel3segunEtiquetas = async (
+    roles: string[],
+    dificultades: string[],
+    categoriasNivel2: string[]
+) => {
+    console.log("Roles recibidos:", roles);
+    console.log("Dificultades recibidas:", dificultades);
+    console.log("Categorías de nivel 2 recibidas:", categoriasNivel2);
+
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT DISTINCT categoria.*
+            FROM categoria
+            INNER JOIN categoria_etiqueta AS ce_rol 
+                ON categoria.idNombre = ce_rol.idNombre
+            INNER JOIN etiqueta AS e_rol 
+                ON ce_rol.idEtiqueta = e_rol.idEtiqueta 
+                AND e_rol.tipo = 'rol' 
+                AND e_rol.valorEtiqueta IN (${roles.map(() => "?").join(",")})
+            INNER JOIN categoria_etiqueta AS ce_dif 
+                ON categoria.idNombre = ce_dif.idNombre
+            INNER JOIN etiqueta AS e_dif 
+                ON ce_dif.idEtiqueta = e_dif.idEtiqueta 
+                AND e_dif.tipo = 'dificultad' 
+                AND e_dif.valorEtiqueta IN (${dificultades.map(() => "?").join(",")})
+            WHERE categoria.categoriaSuperior IN (${categoriasNivel2.map(() => "?").join(",")})
+            ORDER BY categoria.idNombre ASC;
+        `;
+
+        const params = [...roles, ...dificultades, ...categoriasNivel2];
+        console.log("Parámetros utilizados:", params);
+
+        const [rows] = await connection.execute(query, params);
+
+        console.log("Resultados obtenidos:", rows);
+        return rows || [];
+    } catch (error) {
+        console.error("Error obteniendo categorías de nivel 3 según rol, dificultad y nivel 2:", error);
+        return [];
+    } finally {
+        connection.release();
+        console.log("Consulta completada");
+    }
+};
+
+*/
+export const categoriasNivel3segunEtiquetas = async (
+    roles: string[],
+    dificultades: string[],
+    categoriaNivel2: string // Una sola categoría de nivel 2
+) => {
+    console.log("Roles recibidos:", roles);
+    console.log("Dificultades recibidas:", dificultades);
+    console.log("Categoría de nivel 2 recibida:", categoriaNivel2);
+
+    // Validar que los parámetros no estén vacíos
+    if (roles.length === 0 || dificultades.length === 0 || !categoriaNivel2) {
+        console.warn("Uno o más parámetros están vacíos. No se puede ejecutar la consulta.");
+        return [];
+    }
+
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT DISTINCT categoria.*
+            FROM categoria
+            INNER JOIN categoria_etiqueta AS ce_rol 
+                ON categoria.idNombre = ce_rol.idNombre
+            INNER JOIN etiqueta AS e_rol 
+                ON ce_rol.idEtiqueta = e_rol.idEtiqueta 
+                AND e_rol.tipo = 'rol' 
+                AND e_rol.valorEtiqueta IN (${roles.map(() => "?").join(",")})
+            INNER JOIN categoria_etiqueta AS ce_dif 
+                ON categoria.idNombre = ce_dif.idNombre
+            INNER JOIN etiqueta AS e_dif 
+                ON ce_dif.idEtiqueta = e_dif.idEtiqueta 
+                AND e_dif.tipo = 'dificultad' 
+                AND e_dif.valorEtiqueta IN (${dificultades.map(() => "?").join(",")})
+            WHERE categoria.categoriaSuperior = ? -- Una sola categoría de nivel 2
+            ORDER BY categoria.idNombre ASC;
+        `;
+
+        // Parámetros de la consulta
+        const params = [...roles, ...dificultades, categoriaNivel2];
+        console.log("Parámetros utilizados:", params);
+
+        // Ejecutar la consulta
+        const [rows] = await connection.execute(query, params);
+
+        console.log("Resultados obtenidos:", rows);
+        return rows || [];
+    } catch (error) {
+        console.error(
+            "Error obteniendo categorías de nivel 3 según rol, dificultad y categoría de nivel 2:",
+            error
+        );
+        throw new Error("Error al obtener las categorías de nivel 3.");
+    } finally {
+        connection.release();
+        console.log("Conexión liberada.");
+    }
+};
+
+
+
+
+export const getCategoriasDeXroadmapSegunZrol = async (roadmap: string, rol: string) => {
+    const connection = await db.getConnection();
+
+    try {
         const query = `SELECT * FROM Categoria JOIN Roadmap_categoria ON Categoria.idNombre=Roadmap_categoria.componenteCategoria
         WHERE Roadmap_categoria.idRoadmap = '${roadmap}' 
         AND Categoria.idNombre IN (
@@ -253,49 +991,88 @@ export const getCategoriasDeXroadmapSegunZrol= async(roadmap:string, rol:string)
             FROM Categoria_rol 
             WHERE Categoria_rol.idRol='${rol}'
         ) `;
-        const [rows] = await connection.execute<ICategoria[]>(query,[roadmap, rol])
+        const [rows] = await connection.execute<ICategoria[]>(query, [roadmap, rol])
         console.log('Metodo de la clase de consultas X roadmap rol Y prueba')
         console.log(rows)
         return rows;
 
-    }catch(error) {
+    } catch (error) {
         console.log('Error al obtener user', error)
-    }finally{
+    } finally {
         connection.release();
     }
 }
 
-export const getUsuario = async(username:string)=>{
+export const getUsuario = async (username: string) => {
     const connection = await db.getConnection();
 
-    try{
-        const query = `SELECT * FROM user 
-        WHERE user.username='${username}'`
-        const [rows]= await connection.execute<User[]>(query,[username])
-        return rows[0] || [];
-    }catch(error) {
-        console.log('Error al obtener user', error)
-    }finally{
-        connection.release();
+    try {
+        // Query para obtener el usuario con los campos requeridos
+        const query = `
+            SELECT id, username, password, admin, mentor 
+            FROM user 
+            WHERE username = ? LIMIT 1
+        `;
+        const [rows] = await connection.execute<User[]>(query, [username]);
+
+        if (rows.length > 0) {
+            const user = rows[0];
+            console.log("Usuario encontrado:", user); // Log para depurar
+            return user; // Retorna el usuario encontrado
+        }
+
+        console.log("Usuario no encontrado para username:", username);
+        return null;
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error("Error al obtener usuario:", error.message);
+        } else {
+            console.error("Error al obtener usuario:", error); // Registrar el objeto completo si no es una instancia de Error
+        }
+        return null;
     }
 
-}
+};
+
+export const getUsersByRole = async (isMentor: boolean) => {
+    const connection = await db.getConnection();
+    try {
+        // Determina el valor de la columna mentor según el rol solicitado
+        const mentorValue = isMentor ? 1 : 0;
+
+        // Construye la consulta
+        const query = `
+            SELECT id, username 
+            FROM user 
+            WHERE mentor = '${mentorValue}';
+        `;
+
+        const [rows] = await connection.execute(query);
+
+        return rows; // Devuelve los usuarios encontrados
+    } catch (error) {
+        console.error("Error al obtener usuarios por rol:", error);
+        throw error; // Re-lanza el error
+    } finally {
+        connection.release(); // Asegura liberar la conexión
+    }
+};
 
 
 //Obtener los recursos según categoría
 export const getResourcesByCategory = async (categoria: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Recurso_categoria 
             INNER JOIN Recurso ON Recurso_categoria.idRecurso = Recurso.idRecurso 
             WHERE Recurso_categoria.idNombre = '${categoria}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [categoria]);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting resources by category:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
@@ -304,14 +1081,14 @@ export const getResourcesByCategory = async (categoria: string) => {
 export const getRecursoById = async (idRecurso: number) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Recurso WHERE idRecurso = '${idRecurso}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [idRecurso]);
-        
+
         return rows[0];
     } catch (error) {
         console.error('Error getting resource:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
@@ -320,14 +1097,14 @@ export const getRecursoById = async (idRecurso: number) => {
 export const getRecursoIdByTitle = async (title: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT idRecurso FROM Recurso WHERE titulo = '${title}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [title]);
-        
+
         return rows[0].idRecurso;
     } catch (error) {
         console.error('Error getting resource:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
@@ -336,14 +1113,14 @@ export const getRecursoIdByTitle = async (title: string) => {
 export const getRecursoSegunTitulo = async (title: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT idRecurso FROM Recurso WHERE titulo = '${title}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [title]);
-        
+
         return rows[0];
     } catch (error) {
         console.error('Error getting resource:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
@@ -352,14 +1129,14 @@ export const getRecursoSegunTitulo = async (title: string) => {
 export const getAllRecursos = async () => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Recurso`;
         const [rows] = await connection.execute<IRecurso[]>(query);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting resources:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
@@ -368,15 +1145,15 @@ export const getAllRecursos = async () => {
 export const getResourcesByDificultad = async (dificultad: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Recurso WHERE n_Dificultad = '${dificultad}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [dificultad]);
-        
-        
+
+
         return rows || [];
     } catch (error) {
         console.error('Error getting resources by dificultad:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
@@ -384,15 +1161,15 @@ export const getResourcesByDificultad = async (dificultad: string) => {
 export const getResourcesByTipo = async (tipo: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Recurso WHERE Tipo = '${tipo}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [tipo]);
-        
-        
+
+
         return rows || [];
     } catch (error) {
         console.error('Error getting resources by tipo:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
@@ -402,17 +1179,17 @@ export const getResourcesByTipo = async (tipo: string) => {
  * @param categoria 
  * Devolverá el primer resultado de la consulta
  */
-export const getCategoriaInformacionRoadmap = async (categoria:string) => {
+export const getCategoriaInformacionRoadmap = async (categoria: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Categoria WHERE idNombre = '${categoria}'`;
         const [rows] = await connection.execute<ICategoria[]>(query, [categoria]);
-        
+
         return rows[0];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
@@ -420,19 +1197,19 @@ export const getCategoriaInformacionRoadmap = async (categoria:string) => {
 export const getAllCategorias = async () => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Categoria`;
         const [rows] = await connection.execute<ICategoria[]>(query);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
 
-
+/*
 export const getComponentesCategoriaPrimerNivel = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
@@ -444,26 +1221,123 @@ export const getComponentesCategoriaPrimerNivel = async (roadmap: string) => {
         return rows || [];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
+    */
 
-export const getCategoriaPrimerNivelGENERAL = async() =>{
+/*
+export const getComponentesCategoriaPrimerNivel = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
-        
+        const query = `
+            SELECT 
+                s.idRoadmap,
+                s.idCategoria AS componenteCategoria
+            FROM 
+                step s
+            JOIN 
+                categoria c
+            ON 
+                s.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior = 'global'
+            ORDER BY 
+                s.numeroStep;
+        `;
+
+        const [rows] = await connection.execute<IRoadmapComponentePrioridad[]>(query, [roadmap]);
+
+        return rows || [];
+    } catch (error) {
+        console.error('Error getting categorias de primer nivel:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+*/
+export const getComponentesCategoriaPrimerNivel = async (roadmap: string) => {
+    const connection = await db.getConnection();
+    try {
+        // Consulta para categorías directas del roadmap
+        const queryDirectCategories = `
+            SELECT 
+                s.numeroStep AS orden,
+                s.idRoadmap,
+                s.idCategoria AS componenteCategoria
+            FROM 
+                step s
+            JOIN 
+                categoria c
+            ON 
+                s.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior = 'global'
+            ORDER BY 
+                s.numeroStep;
+        `;
+
+        // Consulta para categorías de nivel 1 de los elementos reutilizables
+        const queryReusableCategories = `
+            SELECT 
+                s.numeroStep AS orden, -- El orden del step del elemento reutilizable en el roadmap principal
+                sc.idRoadmap,
+                sc.idCategoria AS componenteCategoria
+            FROM 
+                step s
+            JOIN 
+                step sc
+            ON 
+                s.idElemento = sc.idRoadmap
+            JOIN 
+                categoria c
+            ON 
+                sc.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior = 'global'
+            ORDER BY 
+                s.numeroStep, sc.numeroStep;
+        `;
+
+        // Ejecutar ambas consultas
+        const [directCategories] = await connection.execute<IRoadmapComponentePrioridad[]>(queryDirectCategories, [roadmap]);
+        const [reusableCategories] = await connection.execute<IRoadmapComponentePrioridad[]>(queryReusableCategories, [roadmap]);
+
+        // Combinar resultados y ordenar globalmente por número de step
+        const combinedResults = [...directCategories, ...reusableCategories].sort((a, b) => a.orden - b.orden);
+
+        return combinedResults || [];
+    } catch (error) {
+        console.error('Error getting categorias de primer nivel:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+export const getCategoriaPrimerNivelGENERAL = async () => {
+    const connection = await db.getConnection();
+    try {
+
         const query = `SELECT * FROM Categoria WHERE Categoria.categoriaSuperior='Global' ORDER BY idNombre ASC`;
         const [rows] = await connection.execute<ICategoria[]>(query);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
 
+/*
 export const getComponentesCategoriaSegundoNivel = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
@@ -484,16 +1358,128 @@ export const getComponentesCategoriaSegundoNivel = async (roadmap: string) => {
         return rows || [];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
+    */
+/*
 
+export const getComponentesCategoriaSegundoNivel = async (roadmap: string) => {
+ const connection = await db.getConnection();
+ try {
+     const query = `
+         SELECT 
+             s.idCategoria AS componenteCategoria,
+             c.categoriaSuperior
+         FROM 
+             step s
+         JOIN 
+             categoria c
+         ON 
+             s.idCategoria = c.idNombre
+         WHERE 
+             s.idRoadmap = ?
+             AND c.categoriaSuperior IN (
+                 SELECT idNombre
+                 FROM categoria
+                 WHERE categoriaSuperior = 'global'
+             )
+             AND c.categoriaSuperior != 'global';
+     `;
 
-export const getCategoriaSegundoNivelGENERAL = async() =>{
+     const [rows] = await connection.execute<ICategoriaSubNivel[]>(query, [roadmap]);
+
+     console.log('Categorias de segundo nivel:', rows);
+
+     return rows || [];
+ } catch (error) {
+     console.error('Error getting categorias de segundo nivel:', error);
+     throw error;
+ } finally {
+     connection.release();
+ }
+};
+
+*/
+
+export const getComponentesCategoriaSegundoNivel = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
-        
+        // Consulta para categorías de segundo nivel directamente asociadas al roadmap
+        const queryDirectCategories = `
+            SELECT 
+                s.idCategoria AS componenteCategoria,
+                c.categoriaSuperior,
+                s.numeroStep AS orden
+            FROM 
+                step s
+            JOIN 
+                categoria c
+            ON 
+                s.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior IN (
+                    SELECT idNombre
+                    FROM categoria
+                    WHERE categoriaSuperior = 'global'
+                )
+                AND c.categoriaSuperior != 'global';
+        `;
+
+        // Consulta para categorías de segundo nivel de los elementos reutilizables
+        const queryReusableCategories = `
+            SELECT 
+                sc.idCategoria AS componenteCategoria,
+                c.categoriaSuperior,
+                s.numeroStep AS orden
+            FROM 
+                step s
+            JOIN 
+                step sc
+            ON 
+                s.idElemento = sc.idRoadmap
+            JOIN 
+                categoria c
+            ON 
+                sc.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior IN (
+                    SELECT idNombre
+                    FROM categoria
+                    WHERE categoriaSuperior = 'global'
+                )
+                AND c.categoriaSuperior != 'global';
+        `;
+
+        // Ejecutar ambas consultas
+        const [directCategories] = await connection.execute<ICategoriaSubNivel[]>(queryDirectCategories, [roadmap]);
+        const [reusableCategories] = await connection.execute<ICategoriaSubNivel[]>(queryReusableCategories, [roadmap]);
+
+        // Combinar los resultados y ordenar globalmente por número de step
+        const combinedResults = [...directCategories, ...reusableCategories].sort((a, b) => a.orden - b.orden);
+
+        console.log('Categorias de segundo nivel:', combinedResults);
+
+        return combinedResults || [];
+    } catch (error) {
+        console.error('Error getting categorias de segundo nivel:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+
+
+export const getCategoriaSegundoNivelGENERAL = async () => {
+    const connection = await db.getConnection();
+    try {
+
         const query = `SELECT * FROM Categoria WHERE Categoria.categoriaSuperior IN (
             SELECT idNombre 
             FROM Categoria 
@@ -501,19 +1487,20 @@ export const getCategoriaSegundoNivelGENERAL = async() =>{
         ) 
         ORDER BY idNombre ASC;`;
         const [rows] = await connection.execute<ICategoria[]>(query);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
 
-export const getComponentesCategoriaTercerNivel = async (roadmap:string, padre:string)=>{
+/*
+export const getComponentesCategoriaTercerNivel = async (roadmap: string, padre: string) => {
     const connection = await db.getConnection();
     try {
-        const query =  `SELECT  Roadmap_categoria.componenteCategoria, Categoria.categoriaSuperior
+        const query = `SELECT  Roadmap_categoria.componenteCategoria, Categoria.categoriaSuperior
         FROM Roadmap_categoria  JOIN Categoria
         ON Roadmap_categoria.componenteCategoria = Categoria.idNombre
         WHERE Roadmap_categoria.idRoadmap = '${roadmap}'
@@ -528,15 +1515,124 @@ export const getComponentesCategoriaTercerNivel = async (roadmap:string, padre:s
         return rows || [];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
+    */
 
-export const getCategoriaTercerNivelGENERAL = async() =>{
+/*
+
+export const getComponentesCategoriaTercerNivel = async (roadmap: string, padre: string) => {
     const connection = await db.getConnection();
     try {
-        
+        const query = `
+            SELECT 
+                s.idCategoria AS componenteCategoria,
+                c.categoriaSuperior
+            FROM 
+                step s
+            JOIN 
+                categoria c
+            ON 
+                s.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior IN (
+                    SELECT idNombre
+                    FROM categoria
+                    WHERE categoriaSuperior = ?
+                );
+        `;
+
+        const [rows] = await connection.execute<ICategoriaSubNivel[]>(query, [roadmap, padre]);
+
+        console.log('Categorias de tercer nivel:', rows);
+
+        return rows || [];
+    } catch (error) {
+        console.error('Error getting categorias de tercer nivel:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+*/
+
+export const getComponentesCategoriaTercerNivel = async (roadmap: string, padre: string) => {
+    const connection = await db.getConnection();
+    try {
+        // Consulta para categorías de tercer nivel directamente asociadas al roadmap
+        const queryDirectCategories = `
+            SELECT 
+                s.idCategoria AS componenteCategoria,
+                c.categoriaSuperior,
+                s.numeroStep AS orden
+            FROM 
+                step s
+            JOIN 
+                categoria c
+            ON 
+                s.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior IN (
+                    SELECT idNombre
+                    FROM categoria
+                    WHERE categoriaSuperior = ?
+                );
+        `;
+
+        // Consulta para categorías de tercer nivel de los elementos reutilizables
+        const queryReusableCategories = `
+            SELECT 
+                sc.idCategoria AS componenteCategoria,
+                c.categoriaSuperior,
+                s.numeroStep AS orden
+            FROM 
+                step s
+            JOIN 
+                step sc
+            ON 
+                s.idElemento = sc.idRoadmap
+            JOIN 
+                categoria c
+            ON 
+                sc.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior IN (
+                    SELECT idNombre
+                    FROM categoria
+                    WHERE categoriaSuperior = ?
+                );
+        `;
+
+        // Ejecutar ambas consultas
+        const [directCategories] = await connection.execute<ICategoriaSubNivel[]>(queryDirectCategories, [roadmap, padre]);
+        const [reusableCategories] = await connection.execute<ICategoriaSubNivel[]>(queryReusableCategories, [roadmap, padre]);
+
+        // Combinar los resultados y ordenar globalmente por número de step
+        const combinedResults = [...directCategories, ...reusableCategories].sort((a, b) => a.orden - b.orden);
+
+        console.log('Categorias de tercer nivel:', combinedResults);
+
+        return combinedResults || [];
+    } catch (error) {
+        console.error('Error getting categorias de tercer nivel:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+
+export const getCategoriaTercerNivelGENERAL = async () => {
+    const connection = await db.getConnection();
+    try {
+
         const query = `SELECT * FROM Categoria WHERE Categoria.categoriaSuperior IN (
             SELECT idNombre 
             FROM Categoria 
@@ -547,26 +1643,26 @@ export const getCategoriaTercerNivelGENERAL = async() =>{
         ) )
         ORDER BY idNombre ASC;`;
         const [rows] = await connection.execute<ICategoria[]>(query);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting categoria:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 }
 
-export const getAllRoles = async () =>{
+export const getAllRoles = async () => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM Rol`;
         const [rows] = await connection.execute<IRol[]>(query);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting roadmap:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
@@ -577,14 +1673,14 @@ export const getAllRoles = async () =>{
 export const getRoadmapAlmacenados = async () => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM EsquemaRoadmap`;
         const [rows] = await connection.execute<IRoadmapEsquema[]>(query);
-        
+
         return rows || [];
     } catch (error) {
         console.error('Error getting roadmap:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
@@ -593,14 +1689,14 @@ export const getRoadmapAlmacenados = async () => {
 export const getRoadmapById = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `SELECT * FROM EsquemaRoadmap WHERE idRoadmap = '${roadmap}'`;
-     
+
         const [rows] = await connection.execute<IRoadmapEsquema[]>(query, [roadmap]);
         return rows[0];
     } catch (error) {
         console.error('Error getting roadmap:', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
@@ -611,91 +1707,208 @@ export const getRoadmapById = async (roadmap: string) => {
 export const getJsonDeRoadmap = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
-        
+
         const query = `Select jsonRoadmap FROM EsquemaRoadmap WHERE idRoadmap='${roadmap}'`;
         const [result] = await connection.execute<IRoadmapEsquema[]>(query, [roadmap]);
-        
+
         return result[0];
     } catch (error) {
         console.error('Error obtaining json esquelo', error);
-    }finally {
+    } finally {
         connection.release();
     }
 
 }
 
+export const getIdElementoReutilizable = async (idDelRoadmap: string): Promise<string | null> => {
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT idElementoReutilizable
+            FROM elementoReutilizable
+            WHERE idRoadmap = ?;
+        `;
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  UPDATE BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        const [rows]: any[] = await connection.execute(query, [idDelRoadmap]);
 
-    export const updateCategoriaNombreDescripcion = async (idNombre: string, nuevoNombre: string, nuevaDescripcion:string) => {
-        const connection = await db.getConnection();
-        try {
-            
-            const query = `UPDATE Categoria SET idNombre='${nuevoNombre}', descripcion = '${nuevaDescripcion}' WHERE idNombre = '${idNombre}'`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [nuevoNombre, nuevaDescripcion, idNombre]);
-            return result.affectedRows;
-        } catch (error) {
-            console.error('Error updating categoria:', error);
-        }finally {
-            connection.release();
+        // Verifica si rows tiene datos
+        if (!Array.isArray(rows) || rows.length === 0) {
+            console.error(`No se encontró ningún elemento reutilizable para el idRoadmap: '${idDelRoadmap}'`);
+            return null;
         }
-    }
-    
 
-    export const updateRecurso = async (id: number, nuevoTitulo: string, nuevoEnlace: string, nuevaDescripcion:string) => {
-        const connection = await db.getConnection();
-        try {
-            
-            const query = `UPDATE Recurso SET titulo='${nuevoTitulo}', enlaceFichero='${nuevoEnlace}',descripcion = '${nuevaDescripcion}' WHERE idRecurso = '${id}'`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [nuevoTitulo,nuevoEnlace, nuevaDescripcion, id]);
-            return result.affectedRows;
-        } catch (error) {
-            console.error('Error updating categoria:', error);
-        }finally {
-            connection.release();
+        // Accede al campo idElementoReutilizable del primer resultado
+        const idElementoReutilizable = rows[0]?.idElementoReutilizable;
+
+        // Verifica si el campo existe
+        if (!idElementoReutilizable) {
+            throw new Error(
+                `El campo idElementoReutilizable no está presente en el resultado para el idRoadmap: '${idDelRoadmap}'`
+            );
         }
+
+        return idElementoReutilizable; // Devuelve el ID del elemento reutilizable
+    } catch (error) {
+        console.error("Error al obtener idElementoReutilizable:", error);
+        throw error;
+    } finally {
+        connection.release();
     }
-    
+};
 
-    export const updateUserPassWordYRol = async (username:string, password: string, rol:string)=>{
-        const connection = await db.getConnection();
-            const query = `UPDATE User SET password='${password}', rol='${rol}' WHERE username='${username}'`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [password, rol, username]);
-            return result.affectedRows;
 
-        
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  UPDATE BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const updateStepProgressInDB = async (
+    roadmapId: string,
+    completedSteps: string[]
+) => {
+    const connection = await db.getConnection();
+    try {
+        console.log("Iniciando actualización de progreso en la base de datos...");
+        console.log("roadmapId recibido:", roadmapId);
+        console.log("completedSteps recibido:", completedSteps);
+
+        if (!roadmapId) {
+            throw new Error("roadmapId es undefined o null");
+        }
+
+        // Calcular porcentaje completado
+        const [rows]: any = await connection.execute(
+            `SELECT COUNT(*) as totalSteps
+             FROM step
+             INNER JOIN roadmapasignado ON step.idRoadmap = roadmapasignado.idRoadmap
+             WHERE step.idRoadmap = ?`,
+            [roadmapId]
+        );
+
+        console.log("Resultados de totalSteps:", rows);
+
+        const totalSteps = rows[0]?.totalSteps || 0;
+
+        if (totalSteps === 0) {
+            throw new Error("No hay pasos asociados al roadmap especificado.");
+        }
+
+        const percentageCompleted = ((completedSteps.length / totalSteps) * 100).toFixed(2);
+        console.log("Porcentaje completado calculado:", percentageCompleted);
+
+        // Identificar el último paso completado
+        const currentStep = completedSteps[completedSteps.length - 1] || null;
+        console.log("Último paso completado (currentStep):", currentStep);
+
+        // Actualizar progreso en la tabla principal
+        const result = await connection.execute(
+            `UPDATE roadmapasignado 
+             SET porcentajeCompletado = ?, 
+                 stepActual = ?, 
+                 fechaUltimoAcceso = NOW(),
+                 fechaCompletado = IF(? = 100, NOW(), NULL)
+             WHERE idRoadmap = ?`,
+            [percentageCompleted, currentStep, percentageCompleted, roadmapId]
+        );
+
+        console.log("Resultado de la actualización:", result);
+
+        return percentageCompleted === "100.00";
+    } catch (error) {
+        console.error("Error en updateStepProgressInDB:", error);
+        throw error;
+    } finally {
+        connection.release();
     }
+};
 
 
-    export const updateUserPassWord = async (username:string,password: string)=>{
-        const connection = await db.getConnection();
-            const query = `UPDATE User SET password='${password}' WHERE username='${username}'`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [password,  username]);
-            return result.affectedRows;
+export const updateCategoriaNombreDescripcion = async (idNombre: string, nuevoNombre: string, nuevaDescripcion: string) => {
+    const connection = await db.getConnection();
+    try {
 
+        const query = `UPDATE Categoria SET idNombre='${nuevoNombre}', descripcion = '${nuevaDescripcion}' WHERE idNombre = '${idNombre}'`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [nuevoNombre, nuevaDescripcion, idNombre]);
+        return result.affectedRows;
+    } catch (error) {
+        console.error('Error updating categoria:', error);
+    } finally {
+        connection.release();
     }
-
-    
-    export const updateUserRol = async (username:string,rol: string)=>{
-        const connection = await db.getConnection();
-            const query = `UPDATE user SET  rol='${rol}' WHERE username='${username}'`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [ rol, username]);
-            return result.affectedRows;
+}
 
 
+export const updateRecurso = async (id: number, nuevoTitulo: string, nuevoEnlace: string, nuevaDescripcion: string) => {
+    const connection = await db.getConnection();
+    try {
+
+        const query = `UPDATE Recurso SET titulo='${nuevoTitulo}', enlaceFichero='${nuevoEnlace}',descripcion = '${nuevaDescripcion}' WHERE idRecurso = '${id}'`;
+        const [result] = await connection.execute<ResultSetHeader>(query, [nuevoTitulo, nuevoEnlace, nuevaDescripcion, id]);
+        return result.affectedRows;
+    } catch (error) {
+        console.error('Error updating categoria:', error);
+    } finally {
+        connection.release();
     }
-
-    export const updateUserAdminPoder = async (username:string,admin: number)=>{
-        const connection = await db.getConnection();
-
-            const query = `UPDATE user SET admin='${admin}' WHERE username='${username}'`;
-            const [result] = await connection.execute<ResultSetHeader>(query, [admin, username]);
-            return result.affectedRows;
+}
 
 
+export const updateUserPassWordYRol = async (username: string, password: string, rol: string) => {
+    const connection = await db.getConnection();
+    const query = `UPDATE User SET password='${password}', rol='${rol}' WHERE username='${username}'`;
+    const [result] = await connection.execute<ResultSetHeader>(query, [password, rol, username]);
+    return result.affectedRows;
+
+
+
+}
+
+
+export const updateUserPassWord = async (username: string, password: string) => {
+    const connection = await db.getConnection();
+    const query = `UPDATE User SET password='${password}' WHERE username='${username}'`;
+    const [result] = await connection.execute<ResultSetHeader>(query, [password, username]);
+    return result.affectedRows;
+
+}
+
+
+export const updateUserRol = async (username: string, rol: string) => {
+    const connection = await db.getConnection();
+    const query = `UPDATE user SET  rol='${rol}' WHERE username='${username}'`;
+    const [result] = await connection.execute<ResultSetHeader>(query, [rol, username]);
+    return result.affectedRows;
+
+
+}
+
+export const updateUserAdminPoder = async (username: string, admin: number) => {
+    const connection = await db.getConnection();
+
+    const query = `UPDATE user SET admin='${admin}' WHERE username='${username}'`;
+    const [result] = await connection.execute<ResultSetHeader>(query, [admin, username]);
+    return result.affectedRows;
+
+
+}
+
+
+export const deleteEtiquetaById = async (id: number) => {
+    const connection = await db.getConnection();
+
+    try {
+        const query = `DELETE FROM Etiqueta WHERE id = ?`;
+        await connection.execute(query, [id]);
+    } catch (error) {
+        console.error("Error al eliminar la etiqueta:", error);
+        throw error;
+    } finally {
+        connection.release();
     }
+};
+
+

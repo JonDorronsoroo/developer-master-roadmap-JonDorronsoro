@@ -1,0 +1,208 @@
+---
+import Loader from '../Loader.astro';
+import './FrameRenderer.css';
+
+export const prerender = false;
+
+export interface Props {
+  resourceType: 'roadmap' | 'organigrama';
+  resourceId: string;
+  dimensions?: {
+    width: number;
+    height: number;
+  };
+  componentesCategoriaPrimerNivel: string[];
+  componentesCategoriaSegundoNivel: [string, string][];
+  componentesCategoriaTercerNivel: [string, string][];
+  categoriaSegunRol?: string[];
+}
+
+// Validación del usuario
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/auth/signin');
+}
+
+// Props recibidos
+const {
+  resourceId,
+  resourceType,
+  dimensions = null,
+  componentesCategoriaPrimerNivel,
+  componentesCategoriaSegundoNivel,
+  componentesCategoriaTercerNivel,
+  categoriaSegunRol,
+} = Astro.props;
+---
+
+<div class="frame-renderer-container flex flex-col md:flex-row">
+  <!-- Visualización del roadmap -->
+  <div
+    id="resource-svg-wrap"
+    class="roadmap-visual w-full md:w-2/3"
+    style={dimensions ? `--aspect-ratio:${dimensions.width}/${dimensions.height}` : null}
+    data-resource-type={resourceType}
+    data-resource-id={resourceId}
+    data-componentes-categoria-primer-nivel={componentesCategoriaPrimerNivel}
+    data-componentes-categoria-segundo-nivel={componentesCategoriaSegundoNivel}
+    data-componentes-categoria-tercer-nivel={componentesCategoriaTercerNivel}
+    data-lista-categoria-rol={categoriaSegunRol}
+  >
+    <label id="contador" transition:persist></label>
+    <div id="resource-loader">
+      <Loader />
+    </div>
+  </div>
+
+  <!-- Interacciones con los pasos -->
+  <div class="roadmap-interactions w-full md:w-1/3 p-4 bg-gray-100">
+    <h2 class="text-xl font-bold mb-4">Progreso del Roadmap</h2>
+    <!-- Porcentaje de progreso -->
+    <p id="progress-percentage" class="text-green-600 text-lg font-semibold mb-4">
+      0% completado
+    </p>
+    <ul class="space-y-4">
+      <!-- Primer nivel -->
+      {componentesCategoriaPrimerNivel.map((categoria) => (
+        <li key={categoria} class="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id={`primer-nivel-${categoria}`}
+            name={categoria}
+            value={categoria}
+            class="rounded"
+          />
+          <label for={`primer-nivel-${categoria}`} class="text-gray-700">
+            {categoria}
+          </label>
+        </li>
+      ))}
+
+      <!-- Segundo nivel -->
+      {componentesCategoriaSegundoNivel.map(([categoria, padre]) => (
+        <li key={categoria} class="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id={`segundo-nivel-${categoria}`}
+            name={categoria}
+            value={categoria}
+            class="rounded"
+          />
+          <label for={`segundo-nivel-${categoria}`} class="text-gray-700">
+            {categoria} (Depende de: {padre})
+          </label>
+        </li>
+      ))}
+
+      <!-- Tercer nivel -->
+      {componentesCategoriaTercerNivel.map(([categoria, padre]) => (
+        <li key={categoria} class="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id={`tercer-nivel-${categoria}`}
+            name={categoria}
+            value={categoria}
+            class="rounded"
+          />
+          <label for={`tercer-nivel-${categoria}`} class="text-gray-700">
+            {categoria} (Depende de: {padre})
+          </label>
+        </li>
+      ))}
+    </ul>
+
+    <!-- Botón para enviar progreso -->
+    <button id="save-progress" class="bg-blue-500 text-white py-2 px-4 mt-4 rounded">
+      Guardar Progreso
+    </button>
+  </div>
+</div>
+
+<script client:load>
+  // Función para calcular y actualizar el porcentaje
+  function calculateProgress() {
+    const checkboxes = document.querySelectorAll(".roadmap-interactions input[type='checkbox']");
+    const totalSteps = checkboxes.length;
+    const completedSteps = Array.from(checkboxes).filter((cb) => cb.checked).length;
+
+    const percentage = ((completedSteps / totalSteps) * 100).toFixed(2);
+    const progressLabel = document.getElementById("progress-percentage");
+    if (progressLabel) {
+      progressLabel.textContent = `${percentage}% completado`;
+    }
+  }
+
+  // Función para enviar datos a la API
+async function saveProgress() {
+  const roadmapId = document.querySelector("#resource-svg-wrap")?.getAttribute("data-resource-id");
+  const checkboxes = document.querySelectorAll(".roadmap-interactions input[type='checkbox']");
+  const completedSteps = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+
+  const body = {
+    roadmapId, // Manda solo el ID del roadmap.
+    completedSteps, // Lista de pasos completados.
+  };
+
+  console.log("Enviando datos a la API:", body);
+
+  try {
+    const response = await fetch('/api/updateProgress', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const result = await response.json();
+    console.log("Respuesta de la API:", result);
+  } catch (error) {
+    console.error("Error al enviar datos:", error);
+  }
+}
+
+
+
+  // Adjuntar eventos después de cargar el DOM
+  document.addEventListener("DOMContentLoaded", () => {
+    const checkboxes = document.querySelectorAll(".roadmap-interactions input[type='checkbox']");
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", calculateProgress);
+    });
+
+    const saveButton = document.getElementById("save-progress");
+    if (saveButton) {
+      saveButton.addEventListener("click", saveProgress);
+    }
+  });
+</script>
+
+<script src="./renderer.ts"></script>
+
+<style>
+  .frame-renderer-container {
+    gap: 1.5rem;
+  }
+
+  .roadmap-visual {
+    border-right: 1px solid #ddd;
+  }
+
+  .roadmap-interactions {
+    overflow-y: auto;
+    max-height: 80vh;
+  }
+
+  .roadmap-interactions input[type='checkbox'] {
+    transform: scale(1.2);
+    margin-right: 0.5rem;
+  }
+
+  .bg-blue-500 {
+    transition: background-color 0.3s ease;
+  }
+
+  .bg-blue-500:hover {
+    background-color: #2563eb;
+  }
+</style>

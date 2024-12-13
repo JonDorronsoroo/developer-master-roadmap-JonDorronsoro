@@ -10,10 +10,12 @@ declare module "lucia" {
 	}
 }
 
+// Actualiza DatabaseUserAttributes para incluir `mentor`
 interface DatabaseUserAttributes {
 	username: string;
-    admin:number;
-	rol:string;
+	admin: number;
+	rol: string | null;
+	mentor: number; // Añade mentor aquí
 }
 
 const adapter = new Mysql2Adapter(db, {
@@ -21,18 +23,20 @@ const adapter = new Mysql2Adapter(db, {
 	session: "user_session"
 });
 
-export const lucia = new  Lucia(adapter, {
-    getUserAttributes: (attributes) => {
+export const lucia = new Lucia(adapter, {
+	// Incluye `mentor` en los atributos del usuario
+	getUserAttributes: (attributes) => {
 		return {
 			username: attributes.username,
-            admin: attributes.admin,
-			rol: attributes.rol
+			admin: attributes.admin,
+			rol: attributes.rol,
+			mentor: attributes.mentor, // Añade esto
 		};
 	},
-    
-    sessionCookie: {
-        attributes: {
-            secure: import.meta.env.PROD
-         }
-    }
-})
+
+	sessionCookie: {
+		attributes: {
+			secure: import.meta.env.PROD,
+		},
+	},
+});

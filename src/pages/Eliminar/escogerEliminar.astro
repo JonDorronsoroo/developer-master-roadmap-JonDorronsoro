@@ -1,0 +1,41 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ButtonDegradado from "../../components/Button/ButtonEleccion.astro";
+
+const user = Astro.locals.user;
+
+// Si no hay usuario, redirige a la página de inicio de sesión
+if (!user) {
+    console.log("No hay usuario autenticado, redirigiendo a /auth/signin");
+    return Astro.redirect("/auth/signin");
+}
+
+// Verificar si el usuario es administrador
+if (!user.admin) {
+    console.log("El usuario no tiene permisos de administrador, redirigiendo a /");
+    return Astro.redirect("/");
+}
+
+// Depuración para verificar los datos del usuario
+console.log("Usuario autenticado:", user);
+console.log("¿Es admin?", user.admin ? "Sí" : "No");
+---
+
+<BaseLayout title="Eliminar elementos" permalink={'/Eliminar/escogerEliminar'}>
+    <SimplePageHeader
+        title="Selecciona el elemento que deseas eliminar"
+        description="Puedes eliminar etiquetas, categorías o recursos."
+        link="/help/ayuda"
+    />
+
+    {/* Mostrar información del usuario */}
+    <p class="text-center text-gray-500">
+        Usuario: {user.username}, Rol: {user.admin ? "Admin" : "Usuario regular"}
+    </p>
+
+    {/* Botones exclusivos para administradores */}
+    <ButtonDegradado path="/Eliminar/eliminarEtiqueta" text="Eliminar etiqueta" />
+    <ButtonDegradado path="/Eliminar/eliminarCategoria" text="Eliminar categoría" />
+    <ButtonDegradado path="/Eliminar/eliminarRecurso" text="Eliminar recurso" />
+</BaseLayout>

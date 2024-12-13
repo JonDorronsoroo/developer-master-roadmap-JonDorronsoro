@@ -1,0 +1,35 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getRoadmapsAsignadosNewcomer } from "../../database/consultas";
+
+const user = Astro.locals.user;
+
+// Si el usuario no está autenticado, redirige al inicio de sesión
+if (!user) {
+    return Astro.redirect("/auth/signin");
+}
+
+// Obtén los roadmaps asignados al usuario
+const roadmapsAsignados = await getRoadmapsAsignadosNewcomer(user.id);
+console.log("asignatutak",roadmapsAsignados);
+
+---
+
+<BaseLayout title="Roadmaps Asignados" permalink="/roadmapAsignado/roadmapsAsignadosAlAlumno">
+    <h1 class="text-2xl font-bold text-center mb-6">Roadmaps Asignados</h1>
+    
+    {roadmapsAsignados.length > 0 ? (
+        <ul class="list-disc mx-auto max-w-3xl">
+            {roadmapsAsignados.map(roadmap => (
+                <li class="mb-4">
+                 <a href={`/roadmapEnCurso/${roadmap.idRoadmap}`} class="text-blue-600 hover:underline">
+                    {roadmap.idRoadmap}
+                </a>
+
+                </li>
+            ))}
+        </ul>
+    ) : (
+        <p class="text-center text-gray-600">No tienes roadmaps asignados actualmente.</p>
+    )}
+</BaseLayout>

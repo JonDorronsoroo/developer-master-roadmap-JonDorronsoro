@@ -1,0 +1,105 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getRoadmapAlmacenados, getUsersByRole } from "../../database/consultas";
+
+const user = Astro.locals.user;
+/*
+if (!user || !user.mentor) {
+    return Astro.redirect("/");
+}
+*/
+
+const roadmaps = await getRoadmapAlmacenados();
+const newcomers = await getUsersByRole(false); // Usuarios con mentor = 0
+const mentors = await getUsersByRole(true); // Usuarios con mentor = 1
+console.log("roadmapak", roadmaps);
+---
+
+<BaseLayout title="Asignar Roadmap Personalizado" permalink={'/asignar/asignarRoadmapPersonalizado'}>
+    <SimplePageHeader
+        title="Asignar Roadmap a Newcomer"
+        description="Selecciona un roadmap, un mentor y un newcomer para completar la asignación."
+        link="/help/ayuda"
+    />
+
+    <form id="assignForm" class="flex flex-col gap-8 max-w-md mx-auto mt-10">
+        <div class="form-group">
+            <label for="roadmap" class="block text-gray-700 font-semibold text-lg mb-2">Selecciona un Roadmap:</label>
+            <select id="roadmap" name="id_roadmap" required class="w-full border rounded-lg p-3 text-base shadow-md">
+                {roadmaps.map(roadmap => (
+                    <option value={roadmap.idRoadmap}>{roadmap.idRoadmap}</option>
+                ))}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="mentor" class="block text-gray-700 font-semibold text-lg mb-2">Selecciona un Mentor:</label>
+            <select id="mentor" name="id_mentor" required class="w-full border rounded-lg p-3 text-base shadow-md">
+                {mentors.map(mentor => (
+                    <option value={mentor.id}>{mentor.username}</option>
+                ))}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="newcomer" class="block text-gray-700 font-semibold text-lg mb-2">Selecciona un Newcomer:</label>
+            <select id="newcomer" name="id_newcomer" required class="w-full border rounded-lg p-3 text-base shadow-md">
+                {newcomers.map(newcomer => (
+                    <option value={newcomer.id}>{newcomer.username}</option>
+                ))}
+            </select>
+        </div>
+
+        <button type="submit" class="bg-blue-600 text-white font-semibold rounded-lg px-6 py-3 hover:bg-blue-700 transition-all shadow-md">
+            Asignar Roadmap
+        </button>
+    </form>
+
+    <div id="message" class="mt-5 text-center"></div>
+
+    <script>
+const form = document.getElementById("assignForm");
+const messageDiv = document.getElementById("message");
+
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+    const data = {
+        id_roadmap: formData.get("id_roadmap"),
+        id_mentor: formData.get("id_mentor"),
+        id_newcomer: formData.get("id_newcomer"),
+    };
+
+    console.log("Datos enviados a la API:", data);
+
+    try {
+        const response = await fetch("/api/assignRoadmap", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+
+        // Verifica si el servidor responde con JSON válido
+        if (response.headers.get("content-type") !== "application/json") {
+            throw new Error("La API devolvió HTML en lugar de JSON.");
+        }
+
+        const result = await response.json();
+
+        if (response.ok) {
+            messageDiv.innerHTML = `<p class="text-green-600 font-semibold">¡Roadmap asignado con éxito!</p>`;
+        } else {
+            messageDiv.innerHTML = `<p class="text-red-600 font-semibold">Error: ${result.message}</p>`;
+        }
+    } catch (error) {
+        console.error("Error asignando roadmap:", error);
+        messageDiv.innerHTML = `<p class="text-red-600 font-semibold">Error inesperado. Inténtalo de nuevo.</p>`;
+    }
+});
+
+    </script>
+</BaseLayout>

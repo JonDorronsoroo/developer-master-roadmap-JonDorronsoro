@@ -1,0 +1,60 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ButtonDegradado from "../../components/Button/ButtonEleccion.astro";
+
+const user = Astro.locals.user;
+
+// Si no hay usuario, redirige a la página de inicio de sesión
+if (!user) {
+    console.log("No hay usuario autenticado, redirigiendo a /auth/signin");
+    return Astro.redirect("/auth/signin");
+}
+
+// Depuración para verificar los datos del usuario
+console.log("Usuario autenticado:", user);
+console.log("¿Es mentor?", user.mentor ? "Sí" : "No");
+console.log("¿Es admin?", user.admin ? "Sí" : "No");
+---
+
+<BaseLayout title="Asignar Roadmap Personalizado" permalink={'/asignar/escogerAsignar'}>
+    <SimplePageHeader
+        title="Selecciona la acción que deseas realizar:"
+        description="Aquí puedes asignar roadmaps personalizados a los empleados según los criterios definidos."
+        link="/help/ayuda"
+    />
+
+    <div class="flex flex-col items-center gap-6 mt-8">
+        {/* Mensaje para verificar los datos del usuario */}
+        <p class="text-center text-gray-500 text-lg">
+            Usuario: <strong>{user.username}</strong>, Rol: <strong>{user.admin ? "Admin" : user.mentor ? "Mentor" : "Usuario regular"}</strong>
+        </p>
+
+        {user && user.mentor && (
+            <>
+                <div class="mt-6">
+                    {/* Botón para asignar roadmap personalizado */}
+                    <ButtonDegradado 
+                        path="/asignar/asignarRoadmapPersonalizado" 
+                        text="Asignar Roadmap Personalizado"
+                        class="text-xl px-8 py-4 rounded-lg shadow-lg"
+                    />
+                </div>
+                <div class="mt-6">
+                    {/* Botón para ver roadmaps asignados */}
+                    <ButtonDegradado 
+                        path="/asignar/roadmapsAsignados" 
+                        text="Ver Roadmaps Asignados"
+                        class="text-xl px-8 py-4 rounded-lg shadow-lg"
+                    />
+                </div>
+            </>
+        )}
+
+        {!user.admin && (
+            <p class="text-center text-red-500 text-lg mt-4">
+                No tienes permisos para asignar roadmaps personalizados. Contacta con el administrador.
+            </p>
+        )}
+    </div>
+</BaseLayout>

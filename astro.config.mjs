@@ -8,6 +8,7 @@ import rehypeExternalLinks from 'rehype-external-links';
 import { serializeSitemap, shouldIndexPage } from './sitemap.mjs';
 import node from '@astrojs/node';
 import auth from "auth-astro";
+import { defineConfig } from 'astro/config';
 
 
 // https://astro.build/config

@@ -5,6 +5,7 @@
     "jsxImportSource": "react",
     "typeRoots": [
       "node_modules/@types"
-    ]
+    ],
+    "esModuleInterop": true
   }
 }

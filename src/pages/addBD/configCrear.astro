@@ -1,116 +1,486 @@
 ---
+// Importaciones
 import SimplePageHeader from "../../components/SimplePageHeader.astro";
-import {getCategoriaPrimerNivelGENERAL, getCategoriaSegundoNivelGENERAL,getCategoriaTercerNivelGENERAL } from "../../database/consultas";
-import BaseLayout from "../../layouts/BaseLayout.astro";
-import { insertNuevoRoadmap } from "../../database/consultas";
-import { insertRelacionRoadmapCategoria } from "../../database/consultas";
-import '../../styles/formulario.css'
+import BaseLayout from "../../layouts/BaseLayout.astro"; // Asegúrate de que esta ruta sea correcta
+import {
+    getEtiquetasRol,
+    getEtiquetasDificultad,
+} from "../../database/consultas";
+import "../../styles/formulario.css";
 
 const user = Astro.locals.user;
-if(!user){
-    return Astro.redirect("/auth/signin")
-}else if(user && (!user.admin || user.admin==0)){
-    return Astro.redirect("/home")
-    
+
+// Redirigir a login si no hay un usuario autenticado
+if (!user) {
+    return Astro.redirect("/auth/signin");
 }
-const categoriasNivel1 = await getCategoriaPrimerNivelGENERAL();
 
-const categoriasNivel2 = await getCategoriaSegundoNivelGENERAL();
-
-const categoriasNivel3 = await getCategoriaTercerNivelGENERAL();
-
-
+// Permitir acceso solo a administradores o mentores
+if (!user.admin && !user.mentor) {
+    return Astro.redirect("/home");
+}
 ---
 
-<BaseLayout title='About roadmap.sh' permalink={'/addBD/configCrear'}>
+const etiquetasRol = await getEtiquetasRol();
+const etiquetasDificultad = await getEtiquetasDificultad();
+---
+
+<BaseLayout title="Crear Roadmaps Personalizados" permalink={"/addBD/configCrear"}>
     <SimplePageHeader
-    title='Añade un nuevo itinerario:'
-    description='Crea tu propio itinerario con la información disponible.'
-  />
+        title="Developer Roadmaps"
+        description="Crea y personaliza tus roadmaps"
+    />
 
-  <form id="roadmapForm" class="form-container" autocomplete="off">
+    <form id="roadmapForm" class="form-container" autocomplete="off">
+        <div style="display: flex; gap: 2rem; align-items: flex-start;">
+            <!-- Columna Izquierda -->
+            <div style="flex: 2; display: flex; flex-direction: column; gap: 1.5rem;">
+                <fieldset>
+                    <label class="required-field" for="titulo">Título:</label>
+                    <input type="text" id="titulo" name="titulo" required />
 
-    <fieldset>
-    <label class="required-field">Titulo:</label>
-    <input type="text" name="titulo" required />
+                    <label class="required-field" for="descripcion">Descripción:</label>
+                    <textarea
+                        id="descripcion"
+                        name="descripcion"
+                        rows="4"
+                        cols="60"
+                        required></textarea>
+                </fieldset>
 
-    <label class="required-field">Descripción:</label>
-    <textarea name="descripcion" rows="4" cols="60" required></textarea>
-    </fieldset>
+                <fieldset class="fieldset-comun" id="etiquetasContainer">
+                    <label for="etiquetas">Escoge las etiquetas:</label>
+                    <input
+                        type="text"
+                        id="input-box-etiquetas"
+                        placeholder="Buscar etiqueta"
+                        autocomplete="off"
+                    />
+                    <div id="custom-dropdown" class="custom-dropdown" style="display: none;">
+                        <ul id="dropdown-options" class="dropdown-options"></ul>
+                    </div>
+                    <div id="selectedEtiquetas" class="selectedEtiquetas"></div>
+                </fieldset>
 
-    <fieldset>
-        <label for="categorias">Escoge las categorías del 1º nivel que desees incluir:</label>
-            
-            <input type="text" id="input-box" placeholder="Buscar primer nivel" autocomplete="off">
+                <!-- Elementos Reutilizables (Debajo de Etiquetas) -->
+                <fieldset class="fieldset-comun" id="roadmapsReutilizablesContainer">
+                    <label for="roadmapsReutilizables">Puedes incluir en el nuevo roadmap itinerarios existentes que cumplen con esas etiquetas:</label>
+                    <input
+                        type="text"
+                        id="roadmapsReutilizables"
+                        placeholder="Buscar roadmaps reutilizables"
+                        autocomplete="off"
+                    />
+                    <div id="custom-dropdownroadmapsReutilizables" class="custom-dropdown">
+                        <ul id="dropdown-optionsroadmapsReutilizables" class="dropdown-options">
+                            <!-- Los enlaces a los roadmaps se generarán dinámicamente aquí -->
+                        </ul>
+                    </div>
+                    <!-- Contenedor para los roadmaps seleccionados -->
+                    <div id="selectedCRoadmapsReutilizables" class="selectedCRoadmapsReutilizables">
+                        <!-- Aquí se alistarán los roadmaps seleccionados dinámicamente -->
+                    </div>
+                </fieldset>
 
-            <div id="custom-dropdown" class="custom-dropdown">
-                <ul id="dropdown-options" class="dropdown-options">
-                    {categoriasNivel1?.map((categoria) => (
-                        <li value={categoria.idNombre}>{categoria.idNombre}</li>
-                    ))}
-                </ul>
+                <!-- Categorías de Nivel 1 -->
+                <fieldset class="fieldset-comun" id="categoriasNivel1Container">
+                    <label for="categoriasNivel1">Escoge las categorías de nivel 1:</label>
+                    <input
+                        type="text"
+                        id="input-box-nivel1"
+                        placeholder="Buscar categorías de nivel 1"
+                        autocomplete="off"
+                    />
+                    <div id="custom-dropdown1" class="dropdown-options">
+                        <ul id="dropdown-options1" class="dropdown-options"></ul>
+                    </div>
+                    <div id="selectedCategoriasNivel1" class="selectedCategoriasNivel1"></div>
+                </fieldset>
+
+
+                 <!-- Acordeón para Categorías de Nivel 1 -->
+                <fieldset class="fieldset-comun" id="categoriasNivel1Container">
+                    <label for="categoriasNivel1">Categorías de Nivel 1:</label>
+                    <div class="accordion-container" id="nivel1Accordion">
+                        <!-- Las categorías de nivel 1 se cargarán dinámicamente -->
+                    </div>
+                </fieldset>
+                <fieldset class="fieldset-comun" id="ordenCategoriasContainer">
+                    <label for="ordenCategorias">
+                        Ordena las categorías seleccionadas:
+                    </label>
+                    <div id="sortableCategorias" class="sortable-container">
+                        <ul id="ordenCategorias" class="ordenCategorias"></ul>
+                    </div>
+                </fieldset>
+
+                <div class="button-container">
+                    <button type="submit">Crear y Guardar</button>
+                </div>
+
+                <div id="correct-message" class="message success"></div>
+                <div id="error-message" class="message error"></div>
             </div>
-
-            <div id="checkboxList" class="checkbox-list"></div>
-
-    </fieldset>
-
-
-    <fieldset>
-        <label for="categorias">Escoge las categorías del 2º nivel que desees incluir:</label>
-            
-            <input type="text" id="input-boxSegundo" placeholder="Buscar segundo nivel" autocomplete="off">
-
-            <div id="custom-dropdownSegundo" class="custom-dropdown">
-                <ul id="dropdown-optionsSegundo" class="dropdown-options">
-                    {categoriasNivel2?.map((categoria) => (
-                        <li value={categoria.idNombre}>{categoria.idNombre}</li>
-                    ))}
-                </ul>
-            </div>
-
-            <div id="checkboxListSegundo" class="checkbox-list"></div>
-
-    </fieldset>
-
-    <fieldset>
-        <label for="categorias">Escoge las categorías del 3º nivel que desees incluir:</label>
-            
-            <input type="text" id="input-boxTercero" placeholder="Buscar tercero nivel" autocomplete="off">
-
-            <div id="custom-dropdownTercero" class="custom-dropdown">
-                <ul id="dropdown-optionsTercero" class="dropdown-options">
-                    {categoriasNivel3?.map((categoria) => (
-                        <li value={categoria.idNombre}>{categoria.idNombre}</li>
-                    ))}
-                </ul>
-            </div>
-
-            <div id="checkboxListTercero" class="checkbox-list"></div>
-
-    </fieldset>
-
-
-    <div class="button-container">
-        <button type="submit">Crear y Guardar</button>
-    </div>
-
-    <div id="correct-message" class="message success"></div>
-    <div id="error-message" class="message error"></div>
-
+        </div>
     </form>
+</BaseLayout>
+
+
+
+
 
 <script>
+    import { setupFormSubmission, cargarEtiquetas } from "../../utils.js";
 
-import { setupFormSubmission } from '../../utils.js';
-import { setupDropdown } from './configRoadmap';
-
-setupFormSubmission('roadmapForm', '/api/configItenerario');
-setupDropdown('input-box', 'custom-dropdown', 'checkboxList');
-setupDropdown('input-boxSegundo', 'custom-dropdownSegundo', 'checkboxListSegundo');
-setupDropdown('input-boxTercero', 'custom-dropdownTercero', 'checkboxListTercero');
+    // Configuración inicial del formulario
+    setupFormSubmission("roadmapForm", "/api/configItenerario");
 
 
+    let selectedCategoriasNivel1= [];
+    let selectedCategoriasNivel2 = [];
+    let selectedCategoriasNivel3 = [];
+
+
+ 
+    document.getElementById("input-box-etiquetas").addEventListener("click", (event) => {
+        event.stopPropagation();
+        document.getElementById("custom-dropdown").style.display = "block";
+    });
+
+    document.addEventListener("click", function (event) {
+        const dropdown = document.getElementById("custom-dropdown");
+        const inputBox = document.getElementById("input-box-etiquetas");
+        if (!dropdown.contains(event.target) && event.target !== inputBox) {
+            dropdown.style.display = "none";
+        }
+    });
+
+    // Categorías de Nivel 1
+    document.getElementById("input-box-nivel1").addEventListener("click", (event) => {
+        event.stopPropagation();
+        document.getElementById("custom-dropdown1").style.display = "block";
+    });
+
+    document.addEventListener("click", function (event) {
+        const dropdownCategorias = document.getElementById("custom-dropdown1");
+        const inputBoxCategorias = document.getElementById("input-box-nivel1");
+        if (!dropdownCategorias.contains(event.target) && event.target !== inputBoxCategorias) {
+            dropdownCategorias.style.display = "none";
+        }
+    });
+
+    // Roadmaps Reutilizables
+    document.getElementById("roadmapsReutilizables").addEventListener("click", (event) => {
+        event.stopPropagation();
+        document.getElementById("custom-dropdownroadmapsReutilizables").style.display = "block";
+    });
+
+    document.addEventListener("click", function (event) {
+        const dropdown = document.getElementById("custom-dropdownroadmapsReutilizables");
+        const inputBox = document.getElementById("roadmapsReutilizables");
+        if (!dropdown.contains(event.target) && event.target !== inputBox) {
+            dropdown.style.display = "none";
+        }
+    });
+
+    // --- FUNCIONES PARA MANEJO DE CHECKBOXES ---
+
+function handleNivel1CheckboxChange(event) {
+    const checkbox = event.target;
+    const value = checkbox.value;
+
+    // Verificar si el contenedor destino (selectedCategoriasNivelUno) existe
+    let container = document.getElementById("selectedCategoriasNivelUno");
+
+    if (!container) {
+        // Crear el contenedor si no existe
+        container = document.createElement("div");
+        container.id = "selectedCategoriasNivelUno";
+        container.className = "selectedCategoriasNivelUno";
+
+        // Añadir el contenedor al DOM pero ocultarlo (ver CSS más abajo)
+        const parentElement = document.getElementById("categoriasNivel1Container");
+        parentElement.appendChild(container);
+
+        console.log("Contenedor selectedCategoriasNivelUno creado dinámicamente.");
+    }
+
+    // Añadir o eliminar elementos seleccionados al contenedor destino
+    if (checkbox.checked) {
+        // Crear un nuevo div para la categoría seleccionada
+        const newDiv = document.createElement("div");
+        newDiv.className = "categoria1-selection";
+        newDiv.id = `selected-${value}`;
+        newDiv.textContent = value;
+
+        // Añadir el nuevo div al contenedor destino
+        container.appendChild(newDiv);
+    } else {
+        // Buscar y eliminar el div correspondiente
+        const divToRemove = document.getElementById(`selected-${value}`);
+        if (divToRemove) {
+            container.removeChild(divToRemove);
+        }
+    }
+
+    console.log("Estado actual de selectedCategoriasNivelUno:", container.innerHTML);
+}
+
+
+
+function handleNivel2CheckboxChange(event) {
+    const checkbox = event.target;
+    const value = checkbox.value;
+
+    // Verificar si el contenedor destino (selectedCategoriasNivel2) existe
+    let container = document.getElementById("selectedCategoriasNivel2");
+
+    if (!container) {
+        // Crear el contenedor si no existe
+        container = document.createElement("div");
+        container.id = "selectedCategoriasNivel2";
+        container.className = "selectedCategoriasNivel2";
+
+        // Agregar atributos específicos de Astro (si es necesario)
+        container.setAttribute(
+            "data-astro-source-file",
+            "C:/Users/jon.dornonsoro/Desktop/developer-roadmap-master-master-bertsioona/developer-roadmap-master-master/src/pages/addBD/configCrear.astro"
+        );
+        container.setAttribute("data-astro-source-loc", "105:22");
+
+        // Añadir el contenedor al DOM
+        const parentElement = document.getElementById("categoriasNivel1Container");
+        parentElement.appendChild(container);
+
+        console.log("Contenedor selectedCategoriasNivel2 creado dinámicamente.");
+    }
+
+    // Añadir o eliminar elementos seleccionados al contenedor destino
+    if (checkbox.checked) {
+        const newDiv = document.createElement("div");
+        newDiv.className = "categoria2-selection";
+        newDiv.id = `selected-${value}`;
+        newDiv.textContent = value;
+
+        container.appendChild(newDiv);
+    } else {
+        const divToRemove = document.getElementById(`selected-${value}`);
+        if (divToRemove) {
+            container.removeChild(divToRemove);
+        }
+    }
+
+    console.log("Estado actual de selectedCategoriasNivel2:", container.outerHTML);
+}
+
+
+function handleNivel3CheckboxChange(event) {
+    const checkbox = event.target;
+    const value = checkbox.value;
+
+    // Verificar si el contenedor destino (selectedCategoriasNivel3) existe
+    let container = document.getElementById("selectedCategoriasNivel3");
+
+    if (!container) {
+        // Crear el contenedor si no existe
+        container = document.createElement("div");
+        container.id = "selectedCategoriasNivel3";
+        container.className = "selectedCategoriasNivel3";
+
+        // Agregar atributos específicos de Astro
+        container.setAttribute(
+            "data-astro-source-file",
+            "C:/Users/jon.dornonsoro/Desktop/developer-roadmap-master-master-bertsioona/developer-roadmap-master-master/src/pages/addBD/configCrear.astro"
+        );
+        container.setAttribute("data-astro-source-loc", "120:22");
+
+        // Añadir el contenedor al DOM
+        const parentElement = document.getElementById("categoriasNivel1Container");
+        parentElement.appendChild(container);
+
+        console.log("Contenedor selectedCategoriasNivel3 creado dinámicamente.");
+    }
+
+    // Añadir o eliminar elementos seleccionados al contenedor destino
+    if (checkbox.checked) {
+        const newDiv = document.createElement("div");
+        newDiv.className = "categoria3-selection";
+        newDiv.id = `selected-${value}`;
+        newDiv.textContent = value;
+
+        container.appendChild(newDiv);
+    } else {
+        const divToRemove = document.getElementById(`selected-${value}`);
+        if (divToRemove) {
+            container.removeChild(divToRemove);
+        }
+    }
+
+    console.log("Estado actual de selectedCategoriasNivel3:", container.outerHTML);
+}
+
+
+
+    // --- FUNCIONES DE MANEJO DE DRAG-AND-DROP ---
+    console.log("Beitu reutilizables", selectedCRoadmapsReutilizables)
+    const niveles = ["selectedCRoadmapsReutilizables","selectedCategoriasNivelUno"];
+
+    function moverCategoriasSeleccionadas() {
+        const contenedorGlobal = document.getElementById("ordenCategorias");
+        contenedorGlobal.innerHTML = ""; // Limpiar el contenedor
+
+        niveles.forEach((nivel) => {
+            const contenedorNivel = document.getElementById(nivel);
+            Array.from(contenedorNivel.children).forEach((elemento) => {
+                const li = document.createElement("li");
+                li.draggable = true;
+                li.style.padding = "10px";
+                li.style.margin = "5px 0";
+                li.style.border = "1px solid #ccc";
+                li.style.backgroundColor = "#f9f9f9";
+
+                // Prefijo basado en el nivel
+                const prefijo =
+                    nivel === "selectedCategoriasNivelUno"
+                        ? "Categoría: "
+                        : "Roadmap reutilizable: ";
+
+                li.textContent = `${prefijo}${elemento.id.replace("selected-", "")}`;
+                li.setAttribute("data-id", elemento.id.replace("selected-", ""));
+                li.setAttribute("data-prefijo", prefijo);
+
+                contenedorGlobal.appendChild(li);
+            });
+        });
+
+        console.log("Elementos movidos:", contenedorGlobal.innerHTML);
+    }
+
+    function enableDragAndDrop(containerId) {
+        const container = document.getElementById(containerId);
+        let draggedItem = null;
+
+        container.addEventListener("dragstart", (event) => {
+            if (event.target.tagName === "LI") {
+                draggedItem = event.target;
+                event.target.classList.add("dragging");
+            }
+        });
+
+        container.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            const afterElement = getDragAfterElement(container, event.clientY);
+            if (!afterElement) {
+                container.appendChild(draggedItem);
+            } else {
+                container.insertBefore(draggedItem, afterElement);
+            }
+        });
+
+        container.addEventListener("drop", (event) => {
+            event.preventDefault();
+            if (draggedItem) {
+                draggedItem.classList.remove("dragging");
+                draggedItem = null;
+                actualizarOrden();
+            }
+        });
+
+        container.addEventListener("dragend", (event) => {
+            if (event.target.tagName === "LI") {
+                event.target.classList.remove("dragging");
+            }
+        });
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [
+                ...container.querySelectorAll("li:not(.dragging)"),
+            ];
+
+            return draggableElements.reduce(
+                (closest, child) => {
+                    const box = child.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        return { offset, element: child };
+                    } else {
+                        return closest;
+                    }
+                },
+                { offset: Number.NEGATIVE_INFINITY }
+            ).element;
+        }
+    }
+
+    function actualizarOrden() {
+        const contenedorGlobal = document.getElementById("ordenCategorias");
+
+        Array.from(contenedorGlobal.children).forEach((categoria, index) => {
+            const prefijo = categoria.getAttribute("data-prefijo");
+            const id = categoria.getAttribute("data-id");
+            categoria.setAttribute("data-orden", index + 1);
+            categoria.textContent = `${prefijo}${id} (Orden: ${index + 1})`;
+
+            console.log(`Actualizado: Prefijo=${prefijo}, ID=${id}, Orden=${index + 1}`);
+        });
+
+        console.log("Orden actualizado:", contenedorGlobal.innerHTML);
+    }
+
+    // --- EVENTOS DE LA PÁGINA ---
+    document.addEventListener("DOMContentLoaded", () => {
+        cargarEtiquetas();
+         // Delegar eventos para los checkboxes en el contenedor principal
+        const accordionContainer = document.getElementById("nivel1Accordion");
+
+        if (accordionContainer) {
+            accordionContainer.addEventListener("change", (event) => {
+                const checkbox = event.target;
+
+                if (checkbox.classList.contains("categoria-checkbox")) {
+                    handleNivel1CheckboxChange(event);
+                } else if (checkbox.classList.contains("categoria2-checkbox")) {
+                    handleNivel2CheckboxChange(event);
+                } else if (checkbox.classList.contains("categoria3-checkbox")) {
+                    handleNivel3CheckboxChange(event);
+                }
+            });
+        } else {
+            console.error("Contenedor nivel1Accordion no encontrado en el DOM.");
+        }
+
+        document
+            .getElementById("sortableCategorias")
+            .addEventListener("click", () => {
+                moverCategoriasSeleccionadas();
+                enableDragAndDrop("ordenCategorias");
+            });
+
+        document
+            .getElementById("roadmapForm")
+            .addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                const ordenCategorias = Array.from(
+                    document.querySelectorAll("#ordenCategorias li")
+                ).map((li) => ({
+                    id: li.getAttribute("data-id"),
+                    orden: parseInt(li.getAttribute("data-orden")),
+                    tipo: li.getAttribute("data-prefijo").trim().replace(":", ""),
+                }));
+
+                console.log("Datos preparados para enviar a la API:", ordenCategorias);
+
+                const formData = new FormData();
+                formData.append("ordenCategorias", JSON.stringify(ordenCategorias));
+        formData.append(
+            "selectedCategoriasNivel2",
+            JSON.stringify(selectedCategoriasNivel2)
+        );
+        formData.append(
+            "selectedCategoriasNivel3",
+            JSON.stringify(selectedCategoriasNivel3)
+        );
+            });
+    });
 </script>
-
-</BaseLayout>

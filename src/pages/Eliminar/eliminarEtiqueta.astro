@@ -1,0 +1,74 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const user = Astro.locals.user;
+
+// Si no hay usuario, redirige a la página de inicio de sesión
+if (!user) {
+    console.log("No hay usuario autenticado, redirigiendo a /auth/signin");
+    return Astro.redirect("/auth/signin");
+}
+
+// Importar funciones de consulta
+import { getEtiquetas, eliminarEtiqueta } from "../../database/consultas";
+
+// Obtener las etiquetas disponibles
+const etiquetas = await getEtiquetas(); // Devuelve un array con objetos { idEtiqueta, tipo, valorEtiqueta }
+
+// Procesar la eliminación de la etiqueta
+if (Astro.request.method === "POST") {
+    const formData = await Astro.request.formData();
+    const etiquetaSeleccionada = formData.get("etiqueta"); // Obtén el valor seleccionado (tipo:valor)
+
+    if (etiquetaSeleccionada) {
+        try {
+            // Extraer el valorEtiqueta de "tipo:valor"
+            const valorEtiqueta = etiquetaSeleccionada.split(":")[1].trim(); // Obtiene solo el valor (ej. "Euskera")
+            await eliminarEtiqueta(valorEtiqueta);
+            console.log(`Etiqueta con valor "${valorEtiqueta}" eliminada correctamente.`);
+            return Astro.redirect("/Eliminar/eliminarEtiqueta"); // Redirigir tras la eliminación
+        } catch (error) {
+            console.error("Error al eliminar la etiqueta:", error);
+        }
+    }
+}
+---
+
+<BaseLayout title="Eliminar etiqueta" permalink={'/Eliminar/eliminarEtiqueta'}>
+    <SimplePageHeader
+        title="Eliminar una etiqueta"
+        description="Selecciona una etiqueta de la lista desplegable y elimínala si ya no es necesaria."
+        link="/help/ayuda"
+    />
+
+    {/* Mostrar información del usuario */}
+    <p class="text-center text-gray-500">
+        Usuario: {user.username}, Rol: {user.admin ? "Admin" : user.mentor ? "Mentor" : "Usuario regular"}
+    </p>
+
+    {user && (user.admin || user.mentor) && (
+        <form method="post" class="mx-auto max-w-md mt-6">
+            <label for="etiqueta" class="block text-gray-700 font-semibold mb-2">Selecciona una etiqueta:</label>
+            <select id="etiqueta" name="etiqueta" class="w-full border border-gray-300 rounded-md p-2 mb-4">
+                {etiquetas.map((etiqueta) => (
+                    <option value={`${etiqueta.tipo}:${etiqueta.valorEtiqueta}`}>
+                        {etiqueta.tipo}: {etiqueta.valorEtiqueta}
+                    </option>
+                ))}
+            </select>
+
+            <div class="button-container">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Eliminar seleccionado
+                </button>
+            </div>
+        </form>
+    )}
+
+    {!user.admin && !user.mentor && (
+        <p class="text-center text-red-500 mt-4">
+            No tienes permisos para eliminar etiquetas. Contacta con el administrador.
+        </p>
+    )}
+</BaseLayout>

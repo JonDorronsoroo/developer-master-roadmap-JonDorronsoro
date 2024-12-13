@@ -1,11 +1,11 @@
 ---
-import FrameRenderer from '../../components/FrameRenderer/FrameRenderer.astro';
-import RelatedRoadmaps from '../../components/RelatedRoadmaps.astro';
-import RoadmapHeader from '../../components/RoadmapHeader.astro';
-import { TopicDetail } from '../../components/TopicDetail/TopicDetail';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCategoriasDeXroadmapSegunZrol } from '../../database/consultas';
-import { getComponentesCategoriaPrimerNivel, getComponentesCategoriaSegundoNivel, getComponentesCategoriaTercerNivel, getRoadmapById } from '../../database/consultas';
+import FrameRenderer from "../../../components/FrameRendererEnCurso/FrameRenderer.astro";
+import RelatedRoadmaps from '../../../components/RelatedRoadmaps.astro';
+import RoadmapHeader from '../../../components/RoadmapHeader.astro';
+import { TopicDetail } from '../../../components/TopicDetail/TopicDetail';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCategoriasDeXroadmapSegunZrol } from '../../../database/consultas';
+import { getComponentesCategoriaPrimerNivel, getComponentesCategoriaSegundoNivel, getComponentesCategoriaTercerNivel, getRoadmapById } from '../../../database/consultas';
 export const prerender = false;
 
 interface Params extends Record<string, string | undefined> {

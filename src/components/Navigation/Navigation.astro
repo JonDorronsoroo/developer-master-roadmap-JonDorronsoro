@@ -1,10 +1,10 @@
 ---
 import Icon from '../AstroIcon.astro';
 import AccountDropdown from './AccountDropdown.astro';
-import './btnlogout.css'
-const user = Astro.locals.user; 
-
+import './btnlogout.css';
+const user = Astro.locals.user;
 ---
+
 <div class='bg-gray-100 py-5 text-lks-color sm:py-8'>
   <nav class='container flex items-center'>
     <!-- Left-aligned logo/icon -->
@@ -24,10 +24,28 @@ const user = Astro.locals.user;
         <a href='/opinar/escogerRecurso' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Calificar</a>
       </li>
 
+      <!-- New "Eliminar" button -->
+      <li class='hidden lg:inline'>
+        <a href='/Eliminar/escogerEliminar' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Eliminar</a>
+      </li>
+
+      <!-- "Asignar" button for admin only -->
+      {user && user.mentor && (
+        <li class='hidden lg:inline'>
+          <a href='/asignar/escogerAsignar' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Asignaciones</a>
+        </li>
+      )}
+
+      <!-- "Roadmaps Asignados" button for normal users only -->
+      {user && !user.admin && !user.mentor && (
+        <li class='hidden lg:inline'>
+          <a href='/roadmapAsignado/roadmapsAsignadosAlAlumno' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Roadmaps Asignados</a>
+        </li>
+      )}
+
       <li class='hidden lg:inline'>
         <a href='/help/ayuda' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Ayuda</a>
       </li>
-
 
       <li class='hidden lg:inline'>
         <a href='/modificar/escogerModificar' class='custom-button text-lks-color font-semibold text-[20px] flex items-center justify-center'>Modificar</a>
@@ -76,6 +94,5 @@ const user = Astro.locals.user;
     </div>
   </nav>
 </div>
-
 
 <script src='./navigation.ts'></script>

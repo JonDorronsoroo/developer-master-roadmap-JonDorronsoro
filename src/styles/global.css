@@ -4,19 +4,22 @@
 
 @layer components {
   .container {
-    @apply mx-auto max-w-[830px] px-4;
+    @apply mx-auto max-w-[1200px] px-4;
+    /* Ancho máximo ajustado para evitar conflictos */
   }
 
   .wrapper {
-    @apply flex flex-col min-h-screen; /* Full viewport height and flex column */
+    @apply flex flex-col min-h-screen gap-8;
+    /* Full viewport height, flex column y espacio entre elementos */
   }
 
   .content {
-    @apply flex-1; /* Allow content to take up available space */
+    @apply flex-1;
+    /* Permitir que el contenido ocupe el espacio disponible */
   }
 
   .footer {
-    /* Add any footer-specific styles here */
+    /* Estilos específicos del footer */
   }
 }
 
@@ -25,7 +28,8 @@
 }
 
 button {
-  background-color: #f7f8f7; /* Green */
+  background-color: #f7f8f7;
+  /* Fondo claro */
   border: 2px solid #F85900;
   color: #F85900;
   padding: 15px 32px;
@@ -43,28 +47,28 @@ blockquote p:before {
   display: none;
 }
 
-.prose ul li > code,
-.prose ol li > code,
-p > code,
-a > code,
-strong > code,
-em > code,
-h1 > code,
-h2 > code,
-h3 > code {
+.prose ul li>code,
+.prose ol li>code,
+p>code,
+a>code,
+strong>code,
+em>code,
+h1>code,
+h2>code,
+h3>code {
   background: #ebebeb !important;
   color: currentColor !important;
   font-size: 14px;
   font-weight: normal !important;
 }
 
-.prose ul li > code:before,
-p > code:before,
-.prose ul li > code:after,
-p > code:after,
-a > code:after,
-a > code:before {
-  content: '' !important;
+.prose ul li>code:before,
+p>code:before,
+.prose ul li>code:after,
+p>code:after,
+a>code:after,
+a>code:before {
+  content: "" !important;
 }
 
 .sponsor-footer {
@@ -75,36 +79,126 @@ a > code:before {
   text-transform: uppercase;
   padding: 3px 10px;
   display: block;
-  background: repeating-linear-gradient(
-      -45deg,
+  background: repeating-linear-gradient(-45deg,
       transparent,
       transparent 5px,
       hsla(0, 0%, 0%, 0.025) 5px,
-      hsla(0, 0%, 0%, 0.025) 10px
-    )
-    hsla(203, 11%, 95%, 0.4);
+      hsla(0, 0%, 0%, 0.025) 10px) hsla(203, 11%, 95%, 0.4);
 }
-
 
 a {
-  color: #1D4ED8; /* Azul */
-  text-decoration: underline; /* Subrayado */
+  color: #1d4ed8;
+  /* Azul */
+  text-decoration: underline;
+  /* Subrayado */
 }
 
-
-
-::-webkit-scrollbar{
-  width: .7rem;
+::-webkit-scrollbar {
+  width: 0.7rem;
   background-color: hsl(34, 16%, 75%);
-
 }
 
-::-webkit-scrollbar-thumb{
+::-webkit-scrollbar-thumb {
   background-color: hsl(34, 16%, 65%);
 }
 
-::-webkit-scrollbar-thumb:hover{
+::-webkit-scrollbar-thumb:hover {
   background-color: hsl(34, 97%, 53%);
 }
 
+/* Contenedor para formularios */
+.form-centered {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
+/* Estilo para etiquetas */
+label {
+  font-size: 1rem;
+  /* Tamaño de fuente más consistente */
+  color: #374151;
+  /* Texto gris oscuro */
+}
+
+/* Estilo para select */
+select {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #d1d5db;
+  /* Gris claro */
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+select:focus {
+  border-color: #3b82f6;
+  /* Azul */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* Botón principal */
+button {
+  width: 100%;
+  /* Botón ajustado al ancho del formulario */
+  font-size: 1.125rem;
+  /* Texto más grande */
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  background-color: #3b82f6;
+  /* Azul */
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #2563eb;
+  /* Azul más oscuro */
+  transform: scale(1.02);
+  /* Efecto de agrandamiento */
+}
+
+/* Separación entre grupos */
+.form-group {
+  margin-bottom: 1.5rem;
+  /* Espaciado entre los elementos del formulario */
+}
+
+/* Contenedor específico para roadmaps */
+.roadmap-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.roadmap {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: calc(33.333% - 20px);
+  /* Distribución en 3 columnas */
+  min-width: 250px;
+  text-align: center;
+}
+
+.roadmap h2 {
+  font-size: 1.5rem;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.roadmap p {
+  font-size: 1rem;
+  color: #555;
+}

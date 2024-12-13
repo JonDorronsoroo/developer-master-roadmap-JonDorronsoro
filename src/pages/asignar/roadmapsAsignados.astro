@@ -1,0 +1,72 @@
+---
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const user = Astro.locals.user;
+
+// Si no hay usuario, redirige a la página de inicio de sesión
+if (!user) {
+    console.log("No hay usuario autenticado, redirigiendo a /auth/signin");
+    return Astro.redirect("/auth/signin");
+}
+
+// Depuración para verificar los datos del usuario
+console.log("Usuario autenticado:", user);
+console.log("¿Es mentor?", user.mentor ? "Sí" : "No");
+console.log("¿Es admin?", user.admin ? "Sí" : "No");
+
+let roadmaps = [];
+let error = null;
+
+// Llamada a la API para obtener roadmaps asignados
+try {
+    const response = await fetch(`/api/fetchRoadmapsAsignados?idMentor=${user.id}`);
+    if (!response.ok) {
+        throw new Error(`Error al obtener los roadmaps: ${response.statusText}`);
+    }
+    roadmaps = await response.json();
+} catch (err) {
+    error = err.message;
+}
+---
+
+<BaseLayout title="Roadmaps Asignados" permalink={'/asignar/roadmapsAsignados'}>
+    <SimplePageHeader
+        title="Roadmaps Asignados"
+        description="Lista de roadmaps asignados por el mentor a los empleados."
+        link="/help/ayuda"
+    />
+
+    <div class="mentor-roadmaps mt-8">
+        {error ? (
+            <p class="text-center text-red-500 text-lg">Error: {error}</p>
+        ) : roadmaps.length === 0 ? (
+            <p class="text-center text-gray-500 text-lg">No hay roadmaps asignados.</p>
+        ) : (
+            <table class="table-auto w-full border-collapse border border-gray-300 mt-4">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2">Roadmap</th>
+                        <th class="border border-gray-300 px-4 py-2">Newcomer</th>
+                        <th class="border border-gray-300 px-4 py-2">Fecha Asignado</th>
+                        <th class="border border-gray-300 px-4 py-2">Fecha Completado</th>
+                        <th class="border border-gray-300 px-4 py-2">Progreso</th>
+                        <th class="border border-gray-300 px-4 py-2">Último Acceso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {roadmaps.map((roadmap) => (
+                        <tr key={roadmap.idRoadmapAsignado} class="odd:bg-white even:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.nombreRoadmap}</td>
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.idNewcomer}</td>
+                            <td class="border border-gray-300 px-4 py-2">{new Date(roadmap.fechaAsignado).toLocaleDateString()}</td>
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.fechaCompletado ? new Date(roadmap.fechaCompletado).toLocaleDateString() : "Pendiente"}</td>
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.porcentajeCompletado}%</td>
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.fechaUltimoAcceso ? new Date(roadmap.fechaUltimoAcceso).toLocaleDateString() : "Sin acceso"}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        )}
+    </div>
+</BaseLayout>
