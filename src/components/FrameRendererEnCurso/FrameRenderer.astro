@@ -133,14 +133,17 @@ const {
   }
 
   // Función para enviar datos a la API
+// Función para enviar datos a la API
 async function saveProgress() {
   const roadmapId = document.querySelector("#resource-svg-wrap")?.getAttribute("data-resource-id");
-  const checkboxes = document.querySelectorAll(".roadmap-interactions input[type='checkbox']");
-  const completedSteps = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+  const progressLabel = document.getElementById("progress-percentage");
+
+  // Obtiene el porcentaje directamente desde el label
+  const progressPercentage = parseFloat(progressLabel.textContent);
 
   const body = {
-    roadmapId, // Manda solo el ID del roadmap.
-    completedSteps, // Lista de pasos completados.
+    roadmapId, // ID del roadmap
+    progressPercentage, // Porcentaje completado
   };
 
   console.log("Enviando datos a la API:", body);

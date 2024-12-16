@@ -3,30 +3,28 @@ import { updateStepProgressInDB } from "../../database/consultas";
 
 export async function POST(context: APIContext) {
     try {
-        const { roadmapId, completedSteps } = await context.request.json();
+        const { roadmapId, progressPercentage } = await context.request.json();
 
         // Validar los datos
-        if (!roadmapId || !Array.isArray(completedSteps)) {
-            console.error("Datos inválidos recibidos:", { roadmapId, completedSteps });
+        if (!roadmapId || typeof progressPercentage !== "number" || progressPercentage < 0 || progressPercentage > 100) {
+            console.error("Datos inválidos recibidos:", { roadmapId, progressPercentage });
             return new Response(JSON.stringify({ message: "Datos inválidos" }), {
                 status: 400,
                 headers: { "Content-Type": "application/json" },
             });
         }
 
-        console.log("Datos válidos recibidos:", {
-            roadmapId,
-            completedSteps,
-        });
+        console.log("Datos válidos recibidos:", { roadmapId, progressPercentage });
 
-        const isCompleted = await updateStepProgressInDB(roadmapId, completedSteps);
+        // Actualizar directamente el porcentaje completado en la base de datos
+        const isUpdated = await updateStepProgressInDB(roadmapId, progressPercentage);
 
-        console.log("Resultado de la actualización en la base de datos:", { isCompleted });
+        console.log("Resultado de la actualización en la base de datos:", { isUpdated });
 
         return new Response(
             JSON.stringify({
                 message: "Progreso actualizado correctamente",
-                completed: isCompleted,
+                updated: isUpdated,
             }),
             {
                 status: 200,

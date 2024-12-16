@@ -96,7 +96,7 @@ const connectionConfig = {
   //host: 'localhost',
   user: 'roadmap',
   password: 'roadmap',
-  database: 'roadmap-v2',
+  database: 'roadmapv2',
   //database: 'roadmapcompleto',
   //port: 3307,
   port: 3306

@@ -4,13 +4,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const user = Astro.locals.user;
 
-// Si no hay usuario, redirige a la página de inicio de sesión
+// Redirige a la página de inicio de sesión si no hay usuario autenticado
 if (!user) {
     console.log("No hay usuario autenticado, redirigiendo a /auth/signin");
     return Astro.redirect("/auth/signin");
 }
 
-// Depuración para verificar los datos del usuario
+// Logs de depuración del usuario
 console.log("Usuario autenticado:", user);
 console.log("¿Es mentor?", user.mentor ? "Sí" : "No");
 console.log("¿Es admin?", user.admin ? "Sí" : "No");
@@ -18,14 +18,32 @@ console.log("¿Es admin?", user.admin ? "Sí" : "No");
 let roadmaps = [];
 let error = null;
 
-// Llamada a la API para obtener roadmaps asignados
+// Llamada a la API para obtener los roadmaps asignados
 try {
-    const response = await fetch(`/api/fetchRoadmapsAsignados?idMentor=${user.id}`);
+    const apiBase = 'http://localhost:4321'; // URL base definida manualmente
+    const url = new URL(`/api/fetchRoadmapsAsignados`, apiBase);
+    url.searchParams.append('idMentor', user.id);
+
+    console.log("URL construida para la API:", url.toString());
+
+    const response = await fetch(url.toString());
+    console.log("Estado de la respuesta:", response.status);
+
     if (!response.ok) {
         throw new Error(`Error al obtener los roadmaps: ${response.statusText}`);
     }
-    roadmaps = await response.json();
+
+    const data = await response.json();
+    console.log("Datos recibidos de la API:", data);
+
+    // Validar que los datos son un array
+    if (Array.isArray(data)) {
+        roadmaps = data;
+    } else {
+        throw new Error("La respuesta de la API no es válida. Se esperaba un array.");
+    }
 } catch (err) {
+    console.error("Error al obtener los roadmaps:", err.message);
     error = err.message;
 }
 ---
@@ -58,10 +76,10 @@ try {
                     {roadmaps.map((roadmap) => (
                         <tr key={roadmap.idRoadmapAsignado} class="odd:bg-white even:bg-gray-50">
                             <td class="border border-gray-300 px-4 py-2">{roadmap.nombreRoadmap}</td>
-                            <td class="border border-gray-300 px-4 py-2">{roadmap.idNewcomer}</td>
-                            <td class="border border-gray-300 px-4 py-2">{new Date(roadmap.fechaAsignado).toLocaleDateString()}</td>
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.idNewcomer || "Desconocido"}</td>
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.fechaAsignado ? new Date(roadmap.fechaAsignado).toLocaleDateString() : "No disponible"}</td>
                             <td class="border border-gray-300 px-4 py-2">{roadmap.fechaCompletado ? new Date(roadmap.fechaCompletado).toLocaleDateString() : "Pendiente"}</td>
-                            <td class="border border-gray-300 px-4 py-2">{roadmap.porcentajeCompletado}%</td>
+                            <td class="border border-gray-300 px-4 py-2">{roadmap.porcentajeCompletado ?? 0}%</td>
                             <td class="border border-gray-300 px-4 py-2">{roadmap.fechaUltimoAcceso ? new Date(roadmap.fechaUltimoAcceso).toLocaleDateString() : "Sin acceso"}</td>
                         </tr>
                     ))}

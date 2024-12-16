@@ -155,10 +155,10 @@ export const insertRelacionRoadmapCategoria = async (roadmap: string, categoria:
         let query: string;
         let result: ResultSetHeader; // Change the type annotation to ResultSetHeader
         if (prioridad) {
-            query = `INSERT INTO Roadmap_categoria (idRoadmap, componenteCategoria, prioridad) VALUES ('${roadmap}', '${categoria}', '${prioridad}')`;
+            query = `INSERT INTO roadmap_categoria (idRoadmap, componenteCategoria, prioridad) VALUES ('${roadmap}', '${categoria}', '${prioridad}')`;
             [result] = await connection.execute<ResultSetHeader>(query, [roadmap, categoria, prioridad]);
         } else {
-            query = `INSERT INTO Roadmap_categoria  (idRoadmap, componenteCategoria) VALUES ('${roadmap}', '${categoria}')`;
+            query = `INSERT INTO roadmap_categoria  (idRoadmap, componenteCategoria) VALUES ('${roadmap}', '${categoria}')`;
             [result] = await connection.execute<ResultSetHeader>(query, [roadmap, categoria]);
         }
 
@@ -174,7 +174,7 @@ export const insertNuevoRoadmap = async (roadmap: string, descripcion: string, r
     const connection = await db.getConnection();
     try {
         // Verificar si el roadmap ya existe
-        const [existingRoadmaps] = await connection.query(`SELECT idRoadmap FROM EsquemaRoadmap WHERE idRoadmap = ?`, [roadmap]);
+        const [existingRoadmaps] = await connection.query(`SELECT idRoadmap FROM esquemaroadmap WHERE idRoadmap = ?`, [roadmap]);
         if (existingRoadmaps && Array.isArray(existingRoadmaps) && existingRoadmaps.length > 0) {
             const error = new Error("Roadmap duplicado");
             throw error; // Asegúrate de lanzar el error
@@ -185,10 +185,10 @@ export const insertNuevoRoadmap = async (roadmap: string, descripcion: string, r
         let result: ResultSetHeader;
         let query: string;
         if (relatedRoadmap) {
-            query = `INSERT INTO EsquemaRoadmap (idRoadmap, description, relatedRoadmap) VALUES (?, ?, ?)`;
+            query = `INSERT INTO esquemaroadmap (idRoadmap, description, relatedRoadmap) VALUES (?, ?, ?)`;
             [result] = await connection.execute<ResultSetHeader>(query, [roadmap, descripcion, relatedRoadmap]);
         } else {
-            query = `INSERT INTO EsquemaRoadmap (idRoadmap, description) VALUES (?, ?)`;
+            query = `INSERT INTO esquemaroadmap (idRoadmap, description) VALUES (?, ?)`;
             [result] = await connection.execute<ResultSetHeader>(query, [roadmap, descripcion]);
         }
         return result.insertId;
@@ -205,7 +205,7 @@ export const insertElementoReutilizable = async (idDelRoadmap: string, idEtiquet
     try {
         // Verificar si el idDelRoadmap existe en la tabla EsquemaRoadmap
         const [existingRoadmap] = await connection.query(
-            `SELECT idRoadmap FROM EsquemaRoadmap WHERE idRoadmap = ?`,
+            `SELECT idRoadmap FROM esquemaroadmap WHERE idRoadmap = ?`,
             [idDelRoadmap]
         );
         if (!existingRoadmap || !Array.isArray(existingRoadmap) || existingRoadmap.length === 0) {
@@ -214,7 +214,7 @@ export const insertElementoReutilizable = async (idDelRoadmap: string, idEtiquet
 
         // Verificar si el idEtiqueta existe en la tabla Etiqueta
         const [existingEtiqueta] = await connection.query(
-            `SELECT idEtiqueta FROM Etiqueta WHERE idEtiqueta = ?`,
+            `SELECT idEtiqueta FROM etiqueta WHERE idEtiqueta = ?`,
             [idEtiqueta]
         );
         if (!existingEtiqueta || !Array.isArray(existingEtiqueta) || existingEtiqueta.length === 0) {
@@ -222,7 +222,7 @@ export const insertElementoReutilizable = async (idDelRoadmap: string, idEtiquet
         }
 
         // Insertar el nuevo elemento reutilizable
-        const query = `INSERT INTO elementoReutilizable (idRoadmap, etiqueta) VALUES (?, ?)`;
+        const query = `INSERT INTO elementoreutilizable (idRoadmap, etiqueta) VALUES (?, ?)`;
         const [result] = await connection.execute<ResultSetHeader>(query, [idDelRoadmap, idEtiqueta]);
 
         // Recuperar el idElementoReutilizable insertado
@@ -260,7 +260,7 @@ export async function insertStep(
         const safeIdElemento = idElemento ?? null;
 
         const query = `
-            INSERT INTO Step (numeroStep, idRoadmap, idCategoria, idElemento)
+            INSERT INTO step (numeroStep, idRoadmap, idCategoria, idElemento)
             VALUES (?, ?, ?, ?)
         `;
         await connection.execute(query, [safeNumeroStep, safeIdRoadmap, safeIdCategoria, safeIdElemento]);
@@ -293,7 +293,7 @@ export const insertResource = async (titulo: string, enlaceFichero: string, inte
 
     try {
 
-        const query = `INSERT INTO Recurso (titulo, enlaceFichero,interno,descripcion,n_dificultad,tipo,formato,idioma,deInteres) VALUES ('${titulo}', '${enlaceFichero}','${internoExterno}','${descripcion}',${dificultad},${tipoRecurso},${formatoRecurso},${idiomaRecurso},${deInteresRecurso})`;
+        const query = `INSERT INTO recurso (titulo, enlaceFichero,interno,descripcion,n_dificultad,tipo,formato,idioma,deInteres) VALUES ('${titulo}', '${enlaceFichero}','${internoExterno}','${descripcion}',${dificultad},${tipoRecurso},${formatoRecurso},${idiomaRecurso},${deInteresRecurso})`;
         const [result] = await connection.execute<ResultSetHeader>(query, [titulo, enlaceFichero, internoExterno, descripcion, dificultad, tipoRecurso, formatoRecurso, idiomaRecurso, deInteres]);
 
         return result.insertId;
@@ -315,7 +315,7 @@ export const insertRelacionRecursoCategoria = async (idRecurso: number, idNombre
     const connection = await db.getConnection();
     try {
 
-        const query = `INSERT INTO Recurso_categoria (idRecurso, idNombre) VALUES ('${idRecurso}', '${idNombre}')`;
+        const query = `INSERT INTO recurso_categoria (idRecurso, idNombre) VALUES ('${idRecurso}', '${idNombre}')`;
         const [result] = await connection.execute<ResultSetHeader>(query, [idRecurso, idNombre]);
 
         return result.insertId;
@@ -332,7 +332,7 @@ export const insertCategoria = async (nombre: string, descripcion: string, super
     const connection = await db.getConnection();
     try {
 
-        const query = `INSERT INTO Categoria (idNombre, descripcion, categoriaSuperior) VALUES ('${nombre}','${descripcion}', '${superior}')`;
+        const query = `INSERT INTO categoria (idNombre, descripcion, categoriaSuperior) VALUES ('${nombre}','${descripcion}', '${superior}')`;
         const [result] = await connection.execute<ResultSetHeader>(query, [nombre, descripcion, superior]);
 
         return nombre;
@@ -352,7 +352,7 @@ export const insertCategoriaRol = async (categoria: string, rol: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `INSERT INTO Categoria_rol (idCategoria, idRol) VALUES ('${categoria}','${rol}')`;
+        const query = `INSERT INTO categoria_rol (idCategoria, idRol) VALUES ('${categoria}','${rol}')`;
         const [result] = await connection.execute<ResultSetHeader>(query, [categoria, rol]);
 
         return result;
@@ -435,7 +435,7 @@ export const insertOpinionExterno = async (user: string, idRecurso: number, fech
     const connection = await db.getConnection();
     try {
         const idOpinion = generateId(10);
-        const query = `INSERT INTO Opinion_externo (idOpinion, user,idRecurso, fecha, valoracion, dificultad, 
+        const query = `INSERT INTO opinion_externo (idOpinion, user,idRecurso, fecha, valoracion, dificultad, 
         topTema, problematico, n_beneficioso, recomendado, tiempoNecesario, resolutivo, problema, extra) 
         VALUES ('${idOpinion}','${user}', '${idRecurso}','${fecha}','${valoracionGlobal}', '${dificultad}', '${topTema}','${problematico}', '${n_beneficioso}', 
         '${recomendado}', '${tiempo}','${resolutivo}', '${problema}', '${extra}')`;
@@ -457,7 +457,7 @@ export const insertEtiqueta = async (tipo: string, valor: string) => {
 
     try {
         // Verificar si la etiqueta ya existe
-        const checkQuery = `SELECT COUNT(*) AS count FROM Etiqueta WHERE tipo = '${tipo}' AND valorEtiqueta = '${valor}'`;
+        const checkQuery = `SELECT COUNT(*) AS count FROM etiqueta WHERE tipo = '${tipo}' AND valorEtiqueta = '${valor}'`;
         const [rows]: any = await connection.execute(checkQuery);
 
         if (rows[0].count > 0) {
@@ -465,7 +465,7 @@ export const insertEtiqueta = async (tipo: string, valor: string) => {
         }
 
         // Insertar la etiqueta si no es duplicada
-        const query = `INSERT INTO Etiqueta (tipo, valorEtiqueta) VALUES ('${tipo}', '${valor}')`;
+        const query = `INSERT INTO etiqueta (tipo, valorEtiqueta) VALUES ('${tipo}', '${valor}')`;
         const [result]: any = await connection.execute(query);
 
         return result.insertId;
@@ -479,42 +479,31 @@ export const insertEtiqueta = async (tipo: string, valor: string) => {
 
 export const assignRoadmap = async (
     idRoadmap: string,
-    idNewcomer: string,
+    usernameNewcomer: string,
     idMentor: string
 ) => {
     const connection = await db.getConnection();
     try {
         const query = `
-            INSERT INTO RoadMapAsignado 
-            (idRoadmap, idNewcomer, idMentor, fechaAsignado, porcentajeCompletado, stepActual) 
+            INSERT INTO roadmapasignado 
+            (idRoadmap, idNewcomer, idMentor, fechaAsignado, porcentajeCompletado, stepActual)
             VALUES (?, ?, ?, NOW(), 0.00, 1)
         `;
-
-        const [result] = await connection.execute<ResultSetHeader>(query, [
+        const [result] = await connection.execute(query, [
             idRoadmap,
-            idNewcomer,
+            usernameNewcomer,
             idMentor,
         ]);
 
-        return result;
-    } catch (error: any) {
-        console.error("Error durante la asignación:", error);
-
-        // Verificar el tipo de error
-        if (error.errno === 1062 || error.code === "ER_DUP_ENTRY") {
-            throw {
-                code: 11062,
-                message: "La asignación ya existe.",
-            };
-        } else {
-            throw error; // Re-lanza cualquier otro error inesperado
-        }
+        console.log("Resultado de la consulta:", result); // Para depuración
+        return result; // Devuelve el resultado
+    } catch (error) {
+        console.error("Error al asignar el roadmap:", error);
+        throw error;
     } finally {
-        connection.release(); // Liberar la conexión
+        connection.release();
     }
 };
-
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -522,6 +511,39 @@ export const assignRoadmap = async (
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  GET FROM BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+export const getUserIdByUsername = async (username: string) => {
+    const connection = await db.getConnection();
+
+    try {
+        const query = `
+            SELECT id
+            FROM user
+            WHERE username = ?
+        `;
+
+        // Ejecutar la consulta
+        const [rows] = await connection.execute(query, [username]);
+        console.log("Resultado de la consulta:", rows);
+
+        // Validar que rows no esté vacío
+        if (!Array.isArray(rows) || rows.length === 0) {
+            console.log(`No se encontró ningún usuario con el username: ${username}`);
+            return null;
+        }
+
+        console.log(`Usuario encontrado: ${JSON.stringify(rows[0])}`);
+        return rows[0]; // Retorna el primer resultado de la consulta
+
+    } catch (error) {
+        console.error('Error al obtener el ID del usuario por username:', error);
+        throw error;
+    } finally {
+        // Liberar la conexión a la base de datos
+        connection.release();
+    }
+};
+
+
 
 /*
 export const getCategoriasDeRoadmap = async (roadmap: string) => {
@@ -567,7 +589,7 @@ export const getRoadmapsAsignadosByMentor = async (idMentor: string) => {
             FROM 
                 roadmapasignado ra
             JOIN 
-                esquemaRoadmap er ON ra.idRoadmap = er.idRoadmap
+                esquemaroadmap er ON ra.idRoadmap = er.idRoadmap
             WHERE 
                 ra.idMentor = ?;
         `;
@@ -600,9 +622,11 @@ export const getRoadmapsAsignadosNewcomer = async (idNewcomer: string) => {
             FROM 
                 roadmapasignado ra
             JOIN 
-                esquemaRoadmap er ON ra.idRoadmap = er.idRoadmap
+                esquemaroadmap er ON ra.idRoadmap = er.idRoadmap
+            JOIN 
+                user u ON ra.idNewcomer = u.username
             WHERE 
-                ra.idNewcomer = ?;
+                u.id = ?;
         `;
         const [rows] = await connection.execute(query, [idNewcomer]);
         return rows;
@@ -646,7 +670,7 @@ export const getCategoriasDeRoadmap = async (roadmapId: string) => {
 export const getEtiquetas = async () => {
     const connection = await db.getConnection();
     try {
-        const query = `SELECT * FROM Etiqueta`;
+        const query = `SELECT * FROM etiqueta`;
         const [rows] = await connection.execute(query);
 
         return rows || [];
@@ -984,12 +1008,12 @@ export const getCategoriasDeXroadmapSegunZrol = async (roadmap: string, rol: str
     const connection = await db.getConnection();
 
     try {
-        const query = `SELECT * FROM Categoria JOIN Roadmap_categoria ON Categoria.idNombre=Roadmap_categoria.componenteCategoria
-        WHERE Roadmap_categoria.idRoadmap = '${roadmap}' 
-        AND Categoria.idNombre IN (
+        const query = `SELECT * FROM categoria JOIN roadmap_categoria ON categoria.idNombre=roadmap_categoria.componenteCategoria
+        WHERE roadmap_categoria.idRoadmap = '${roadmap}' 
+        AND categoria.idNombre IN (
             SELECT idCategoria
-            FROM Categoria_rol 
-            WHERE Categoria_rol.idRol='${rol}'
+            FROM categoria_rol 
+            WHERE categoria_rol.idRol='${rol}'
         ) `;
         const [rows] = await connection.execute<ICategoria[]>(query, [roadmap, rol])
         console.log('Metodo de la clase de consultas X roadmap rol Y prueba')
@@ -1064,9 +1088,9 @@ export const getResourcesByCategory = async (categoria: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Recurso_categoria 
-            INNER JOIN Recurso ON Recurso_categoria.idRecurso = Recurso.idRecurso 
-            WHERE Recurso_categoria.idNombre = '${categoria}'`;
+        const query = `SELECT * FROM recurso_categoria 
+            INNER JOIN recurso ON recurso_categoria.idRecurso = recurso.idRecurso 
+            WHERE recurso_categoria.idNombre = '${categoria}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [categoria]);
 
         return rows || [];
@@ -1082,7 +1106,7 @@ export const getRecursoById = async (idRecurso: number) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Recurso WHERE idRecurso = '${idRecurso}'`;
+        const query = `SELECT * FROM recurso WHERE idRecurso = '${idRecurso}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [idRecurso]);
 
         return rows[0];
@@ -1098,7 +1122,7 @@ export const getRecursoIdByTitle = async (title: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT idRecurso FROM Recurso WHERE titulo = '${title}'`;
+        const query = `SELECT idRecurso FROM recurso WHERE titulo = '${title}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [title]);
 
         return rows[0].idRecurso;
@@ -1114,7 +1138,7 @@ export const getRecursoSegunTitulo = async (title: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT idRecurso FROM Recurso WHERE titulo = '${title}'`;
+        const query = `SELECT idRecurso FROM recurso WHERE titulo = '${title}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [title]);
 
         return rows[0];
@@ -1130,7 +1154,7 @@ export const getAllRecursos = async () => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Recurso`;
+        const query = `SELECT * FROM recurso`;
         const [rows] = await connection.execute<IRecurso[]>(query);
 
         return rows || [];
@@ -1146,7 +1170,7 @@ export const getResourcesByDificultad = async (dificultad: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Recurso WHERE n_Dificultad = '${dificultad}'`;
+        const query = `SELECT * FROM recurso WHERE n_Dificultad = '${dificultad}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [dificultad]);
 
 
@@ -1162,7 +1186,7 @@ export const getResourcesByTipo = async (tipo: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Recurso WHERE Tipo = '${tipo}'`;
+        const query = `SELECT * FROM recurso WHERE Tipo = '${tipo}'`;
         const [rows] = await connection.execute<IRecurso[]>(query, [tipo]);
 
 
@@ -1183,7 +1207,7 @@ export const getCategoriaInformacionRoadmap = async (categoria: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Categoria WHERE idNombre = '${categoria}'`;
+        const query = `SELECT * FROM categoria WHERE idNombre = '${categoria}'`;
         const [rows] = await connection.execute<ICategoria[]>(query, [categoria]);
 
         return rows[0];
@@ -1198,7 +1222,7 @@ export const getAllCategorias = async () => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Categoria`;
+        const query = `SELECT * FROM categoria`;
         const [rows] = await connection.execute<ICategoria[]>(query);
 
         return rows || [];
@@ -1326,7 +1350,7 @@ export const getCategoriaPrimerNivelGENERAL = async () => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Categoria WHERE Categoria.categoriaSuperior='Global' ORDER BY idNombre ASC`;
+        const query = `SELECT * FROM categoria WHERE Categoria.categoriaSuperior='Global' ORDER BY idNombre ASC`;
         const [rows] = await connection.execute<ICategoria[]>(query);
 
         return rows || [];
@@ -1480,10 +1504,10 @@ export const getCategoriaSegundoNivelGENERAL = async () => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Categoria WHERE Categoria.categoriaSuperior IN (
+        const query = `SELECT * FROM Categoria WHERE categoria.categoriaSuperior IN (
             SELECT idNombre 
-            FROM Categoria 
-            WHERE Categoria.categoriaSuperior = 'Global'
+            FROM categoria 
+            WHERE categoria.categoriaSuperior = 'Global'
         ) 
         ORDER BY idNombre ASC;`;
         const [rows] = await connection.execute<ICategoria[]>(query);
@@ -1633,13 +1657,13 @@ export const getCategoriaTercerNivelGENERAL = async () => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Categoria WHERE Categoria.categoriaSuperior IN (
+        const query = `SELECT * FROM categoria WHERE categoria.categoriaSuperior IN (
             SELECT idNombre 
-            FROM Categoria 
-            WHERE Categoria.categoriaSuperior <> 'Global' AND
+            FROM categoria 
+            WHERE categoria.categoriaSuperior <> 'Global' AND
             Categoria.categoriaSuperior IN ( SELECT idNombre
-                FROM Categoria 
-                WHERE Categoria.categoriaSuperior = 'Global'
+                FROM categoria 
+                WHERE categoria.categoriaSuperior = 'Global'
         ) )
         ORDER BY idNombre ASC;`;
         const [rows] = await connection.execute<ICategoria[]>(query);
@@ -1656,7 +1680,7 @@ export const getAllRoles = async () => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM Rol`;
+        const query = `SELECT * FROM rol`;
         const [rows] = await connection.execute<IRol[]>(query);
 
         return rows || [];
@@ -1674,7 +1698,7 @@ export const getRoadmapAlmacenados = async () => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM EsquemaRoadmap`;
+        const query = `SELECT * FROM esquemaroadmap`;
         const [rows] = await connection.execute<IRoadmapEsquema[]>(query);
 
         return rows || [];
@@ -1690,7 +1714,7 @@ export const getRoadmapById = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `SELECT * FROM EsquemaRoadmap WHERE idRoadmap = '${roadmap}'`;
+        const query = `SELECT * FROM esquemaroadmap WHERE idRoadmap = '${roadmap}'`;
 
         const [rows] = await connection.execute<IRoadmapEsquema[]>(query, [roadmap]);
         return rows[0];
@@ -1708,7 +1732,7 @@ export const getJsonDeRoadmap = async (roadmap: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `Select jsonRoadmap FROM EsquemaRoadmap WHERE idRoadmap='${roadmap}'`;
+        const query = `Select jsonRoadmap FROM esquemaroadmap WHERE idRoadmap='${roadmap}'`;
         const [result] = await connection.execute<IRoadmapEsquema[]>(query, [roadmap]);
 
         return result[0];
@@ -1765,59 +1789,38 @@ export const getIdElementoReutilizable = async (idDelRoadmap: string): Promise<s
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  UPDATE BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 export const updateStepProgressInDB = async (
     roadmapId: string,
-    completedSteps: string[]
+    progressPercentage: number
 ) => {
     const connection = await db.getConnection();
     try {
         console.log("Iniciando actualización de progreso en la base de datos...");
         console.log("roadmapId recibido:", roadmapId);
-        console.log("completedSteps recibido:", completedSteps);
+        console.log("progressPercentage recibido:", progressPercentage);
 
         if (!roadmapId) {
             throw new Error("roadmapId es undefined o null");
         }
 
-        // Calcular porcentaje completado
-        const [rows]: any = await connection.execute(
-            `SELECT COUNT(*) as totalSteps
-             FROM step
-             INNER JOIN roadmapasignado ON step.idRoadmap = roadmapasignado.idRoadmap
-             WHERE step.idRoadmap = ?`,
-            [roadmapId]
-        );
-
-        console.log("Resultados de totalSteps:", rows);
-
-        const totalSteps = rows[0]?.totalSteps || 0;
-
-        if (totalSteps === 0) {
-            throw new Error("No hay pasos asociados al roadmap especificado.");
+        // Validar el porcentaje
+        if (typeof progressPercentage !== "number" || progressPercentage < 0 || progressPercentage > 100) {
+            throw new Error("progressPercentage debe ser un número entre 0 y 100");
         }
-
-        const percentageCompleted = ((completedSteps.length / totalSteps) * 100).toFixed(2);
-        console.log("Porcentaje completado calculado:", percentageCompleted);
-
-        // Identificar el último paso completado
-        const currentStep = completedSteps[completedSteps.length - 1] || null;
-        console.log("Último paso completado (currentStep):", currentStep);
 
         // Actualizar progreso en la tabla principal
         const result = await connection.execute(
             `UPDATE roadmapasignado 
              SET porcentajeCompletado = ?, 
-                 stepActual = ?, 
                  fechaUltimoAcceso = NOW(),
                  fechaCompletado = IF(? = 100, NOW(), NULL)
              WHERE idRoadmap = ?`,
-            [percentageCompleted, currentStep, percentageCompleted, roadmapId]
+            [progressPercentage, progressPercentage, roadmapId]
         );
 
         console.log("Resultado de la actualización:", result);
 
-        return percentageCompleted === "100.00";
+        return progressPercentage === 100; // Devuelve true si el progreso está completado
     } catch (error) {
         console.error("Error en updateStepProgressInDB:", error);
         throw error;
@@ -1827,11 +1830,12 @@ export const updateStepProgressInDB = async (
 };
 
 
+
 export const updateCategoriaNombreDescripcion = async (idNombre: string, nuevoNombre: string, nuevaDescripcion: string) => {
     const connection = await db.getConnection();
     try {
 
-        const query = `UPDATE Categoria SET idNombre='${nuevoNombre}', descripcion = '${nuevaDescripcion}' WHERE idNombre = '${idNombre}'`;
+        const query = `UPDATE categoria SET idNombre='${nuevoNombre}', descripcion = '${nuevaDescripcion}' WHERE idNombre = '${idNombre}'`;
         const [result] = await connection.execute<ResultSetHeader>(query, [nuevoNombre, nuevaDescripcion, idNombre]);
         return result.affectedRows;
     } catch (error) {
@@ -1846,7 +1850,7 @@ export const updateRecurso = async (id: number, nuevoTitulo: string, nuevoEnlace
     const connection = await db.getConnection();
     try {
 
-        const query = `UPDATE Recurso SET titulo='${nuevoTitulo}', enlaceFichero='${nuevoEnlace}',descripcion = '${nuevaDescripcion}' WHERE idRecurso = '${id}'`;
+        const query = `UPDATE recurso SET titulo='${nuevoTitulo}', enlaceFichero='${nuevoEnlace}',descripcion = '${nuevaDescripcion}' WHERE idRecurso = '${id}'`;
         const [result] = await connection.execute<ResultSetHeader>(query, [nuevoTitulo, nuevoEnlace, nuevaDescripcion, id]);
         return result.affectedRows;
     } catch (error) {
@@ -1870,7 +1874,7 @@ export const updateUserPassWordYRol = async (username: string, password: string,
 
 export const updateUserPassWord = async (username: string, password: string) => {
     const connection = await db.getConnection();
-    const query = `UPDATE User SET password='${password}' WHERE username='${username}'`;
+    const query = `UPDATE user SET password='${password}' WHERE username='${username}'`;
     const [result] = await connection.execute<ResultSetHeader>(query, [password, username]);
     return result.affectedRows;
 
@@ -1901,7 +1905,7 @@ export const deleteEtiquetaById = async (id: number) => {
     const connection = await db.getConnection();
 
     try {
-        const query = `DELETE FROM Etiqueta WHERE id = ?`;
+        const query = `DELETE FROM etiqueta WHERE id = ?`;
         await connection.execute(query, [id]);
     } catch (error) {
         console.error("Error al eliminar la etiqueta:", error);
