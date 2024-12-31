@@ -28,19 +28,30 @@ export class ProblemaBD extends Error {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**  export const inserUsuario= async (email: string, password: string) => {
-         const connection = await db.getConnection();
-         try {
-             const query = `INSERT INTO Usuario (email, password) VALUES ('${email}', '${password}')`;
-             const [result] = await connection.execute<ResultSetHeader>(query, [email, password]);
-             return result.insertId;
-         } catch (error) {
-             console.error('Error adding user:', error);
 
-         }finally {
-             connection.release();
-         }
- }*/
+
+export const insertCategoriaEtiqueta = async (categoria: string, etiqueta: number): Promise<number | undefined> => {
+    const connection = await db.getConnection();
+    try {
+        let query: string;
+        let result: ResultSetHeader;
+
+
+        query = `INSERT INTO categoria_etiqueta (idNombre, idEtiqueta) VALUES (?, ?)`;
+        [result] = await connection.execute<ResultSetHeader>(query, [categoria, etiqueta]);
+
+
+        return result.insertId;
+    } catch (error) {
+        console.error('Error adding relacion categoria-etiqueta:', error);
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+
 
 export const insertEtiquetaConocimientoBase = async (valorEtiqueta: string) => {
     const connection = await db.getConnection();
@@ -170,35 +181,35 @@ export const insertRelacionRoadmapCategoria = async (roadmap: string, categoria:
     }
 }
 
-export const insertNuevoRoadmap = async (roadmap: string, descripcion: string, relatedRoadmap?: string) => {
+export const insertNuevoRoadmap = async (
+    roadmap: string,
+    descripcion: string,
+    relatedRoadmap: string | null
+): Promise<number | null> => {
     const connection = await db.getConnection();
     try {
-        // Verificar si el roadmap ya existe
-        const [existingRoadmaps] = await connection.query(`SELECT idRoadmap FROM esquemaroadmap WHERE idRoadmap = ?`, [roadmap]);
-        if (existingRoadmaps && Array.isArray(existingRoadmaps) && existingRoadmaps.length > 0) {
-            const error = new Error("Roadmap duplicado");
-            throw error; // Asegúrate de lanzar el error
-
-        }
-
-        // Insertar el roadmap si no existe
-        let result: ResultSetHeader;
-        let query: string;
-        if (relatedRoadmap) {
-            query = `INSERT INTO esquemaroadmap (idRoadmap, description, relatedRoadmap) VALUES (?, ?, ?)`;
-            [result] = await connection.execute<ResultSetHeader>(query, [roadmap, descripcion, relatedRoadmap]);
-        } else {
-            query = `INSERT INTO esquemaroadmap (idRoadmap, description) VALUES (?, ?)`;
-            [result] = await connection.execute<ResultSetHeader>(query, [roadmap, descripcion]);
-        }
-        return result.insertId;
+        const query = `
+            INSERT INTO esquemaroadmap (idRoadmap, description, relatedRoadmap)
+            VALUES (?, ?, ?)
+        `;
+        const [result]: any = await connection.execute(query, [
+            roadmap,
+            descripcion,
+            relatedRoadmap,
+        ]);
+        console.log("Roadmap insertado correctamente:", roadmap);
+        console.log("Resultado de la consulta:", result);
+        return result.insertId || null;
     } catch (error) {
-        console.error('Error adding a new roadmap', error);
-        throw error; // Propagar el error para manejarlo en el cliente
+        console.error("Error al insertar el nuevo roadmap:", error instanceof Error ? error.message : error);
+        throw error;
     } finally {
         connection.release();
     }
-}
+};
+
+
+
 
 export const insertElementoReutilizable = async (idDelRoadmap: string, idEtiqueta: number) => {
     const connection = await db.getConnection();
@@ -511,6 +522,110 @@ export const assignRoadmap = async (
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  GET FROM BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+export const getEtiquetaIdPorTipoYValor = async (tipo: string, valorEtiqueta: number) => {
+    const connection = await db.getConnection();
+    try {
+        const query = `SELECT idEtiqueta FROM etiqueta WHERE CONCAT(tipo, ': ', valorEtiqueta) = ?`;
+        const [rows] = await connection.execute(query, [`${tipo}: ${valorEtiqueta}`]);
+
+        console.log('Resultado de la consulta:', rows); // Depuración
+
+        if (Array.isArray(rows) && rows.length > 0) {
+            const result = rows[0];
+            console.log('Primer resultado:', result); // Verificar contenido del primer elemento
+
+            if (result && 'idEtiqueta' in result) {
+                return result.idEtiqueta; // Retornar idEtiqueta si existe
+            } else {
+                console.error('La propiedad idEtiqueta no se encuentra en el resultado.');
+                return null;
+            }
+        } else {
+            console.warn('La consulta no devolvió resultados.');
+            return null;
+        }
+    } catch (error) {
+        console.error('Error obteniendo idEtiqueta por tipo y valor:', error);
+        return null;
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+export const getEtiquetasByRoadmapId = async (idRoadmap: string) => {
+    const connection = await db.getConnection();
+
+    try {
+        const query = `
+            SELECT e.valorEtiqueta, e.tipo
+            FROM esquemaroadmap er
+            JOIN esquemaroadmap_etiqueta ere ON er.idRoadmap = ere.idEsquema
+            JOIN etiqueta e ON ere.idEtiqueta = e.idEtiqueta
+            WHERE er.idRoadmap = ?
+        `;
+
+        // Ejecutar la consulta
+        const [rows] = await connection.execute(query, [idRoadmap]);
+        console.log("Resultado de la consulta:", rows);
+
+        // Validar que rows no esté vacío
+        if (!Array.isArray(rows) || rows.length === 0) {
+            console.log(`No se encontraron etiquetas para el roadmap con ID: ${idRoadmap}`);
+            return null;
+        }
+
+        console.log(`Etiquetas encontradas: ${JSON.stringify(rows)}`);
+        return rows; // Retorna las etiquetas encontradas
+
+    } catch (error) {
+        console.error('Error al obtener las etiquetas del roadmap:', error);
+        throw error;
+    } finally {
+        // Liberar la conexión a la base de datos
+        connection.release();
+    }
+};
+
+
+export async function getMaxVersionByRoadmap(idRoadmap: string) {
+    const query = `
+        SELECT 
+            MAX(version) AS max_version
+        FROM 
+            esquemaroadmap
+        WHERE 
+            idRoadmap = ?; -- Usa correctamente el marcador de posición
+    `;
+
+    let connection;
+    try {
+        // Obtener conexión con la base de datos
+        connection = await db.getConnection();
+
+        // Ejecutar la consulta con el parámetro idRoadmap
+        const [rows]: any = await connection.execute(query, [idRoadmap]);
+
+        // Verificar si hay resultados
+        if (rows.length === 0) {
+            throw new Error(`No se encontró ningún roadmap con idRoadmap: ${idRoadmap}`);
+        }
+
+        // Retornar el resultado
+        return rows[0]?.max_version || null; // Devuelve la versión máxima o null si no hay datos
+    } catch (error) {
+        console.error(`Error en getMaxVersionByRoadmap para idRoadmap: ${idRoadmap}`, error);
+        throw error; // Re-lanzar el error para manejarlo en el nivel superior
+    } finally {
+        // Liberar la conexión
+        if (connection) {
+            connection.release();
+        }
+    }
+}
+
+
 export const getUserIdByUsername = async (username: string) => {
     const connection = await db.getConnection();
 
@@ -540,6 +655,37 @@ export const getUserIdByUsername = async (username: string) => {
     } finally {
         // Liberar la conexión a la base de datos
         connection.release();
+    }
+};
+
+
+export const getUltimaVersionRoadmap = async (roadmapId: string) => {
+    const connection = await db.getConnection();
+
+    try {
+        const query = `
+            SELECT MAX(version) as version
+            FROM esquemaroadmap
+            WHERE idRoadmap = ?
+        `;
+
+        // Ejecutar la consulta
+        const [rows] = await connection.execute(query, [roadmapId]);
+
+        // Asegurar que `rows` tiene el formato esperado
+        if (Array.isArray(rows) && rows.length > 0) {
+            const version = rows[0] || 0; // Obtener la versión o 0
+            return version;
+        }
+
+        // Si no hay filas, devolver 0
+        return 0;
+
+    } catch (error) {
+        console.error('Error al obtener la última versión del roadmap:', error);
+        return 0;  // Devolver 0 en caso de error
+    } finally {
+        connection.release();  // Liberar la conexión
     }
 };
 
@@ -896,54 +1042,6 @@ export const categoriasNivel2segunEtiquetas = async (
         console.log("Conexión liberada.");
     }
 };
-/*
-export const categoriasNivel3segunEtiquetas = async (
-    roles: string[],
-    dificultades: string[],
-    categoriasNivel2: string[]
-) => {
-    console.log("Roles recibidos:", roles);
-    console.log("Dificultades recibidas:", dificultades);
-    console.log("Categorías de nivel 2 recibidas:", categoriasNivel2);
-
-    const connection = await db.getConnection();
-    try {
-        const query = `
-            SELECT DISTINCT categoria.*
-            FROM categoria
-            INNER JOIN categoria_etiqueta AS ce_rol 
-                ON categoria.idNombre = ce_rol.idNombre
-            INNER JOIN etiqueta AS e_rol 
-                ON ce_rol.idEtiqueta = e_rol.idEtiqueta 
-                AND e_rol.tipo = 'rol' 
-                AND e_rol.valorEtiqueta IN (${roles.map(() => "?").join(",")})
-            INNER JOIN categoria_etiqueta AS ce_dif 
-                ON categoria.idNombre = ce_dif.idNombre
-            INNER JOIN etiqueta AS e_dif 
-                ON ce_dif.idEtiqueta = e_dif.idEtiqueta 
-                AND e_dif.tipo = 'dificultad' 
-                AND e_dif.valorEtiqueta IN (${dificultades.map(() => "?").join(",")})
-            WHERE categoria.categoriaSuperior IN (${categoriasNivel2.map(() => "?").join(",")})
-            ORDER BY categoria.idNombre ASC;
-        `;
-
-        const params = [...roles, ...dificultades, ...categoriasNivel2];
-        console.log("Parámetros utilizados:", params);
-
-        const [rows] = await connection.execute(query, params);
-
-        console.log("Resultados obtenidos:", rows);
-        return rows || [];
-    } catch (error) {
-        console.error("Error obteniendo categorías de nivel 3 según rol, dificultad y nivel 2:", error);
-        return [];
-    } finally {
-        connection.release();
-        console.log("Consulta completada");
-    }
-};
-
-*/
 export const categoriasNivel3segunEtiquetas = async (
     roles: string[],
     dificultades: string[],
@@ -1000,6 +1098,91 @@ export const categoriasNivel3segunEtiquetas = async (
         console.log("Conexión liberada.");
     }
 };
+
+export const categoriasNivel3PorPadre = async (
+    categoriaNivel2Padre: string // Una sola categoría de nivel 2
+) => {
+    console.log("Categoría de nivel 2 recibida:", categoriaNivel2Padre);
+
+    // Validar que el parámetro no esté vacío
+    if (!categoriaNivel2Padre) {
+        console.warn("El parámetro de categoría de nivel 2 está vacío. No se puede ejecutar la consulta.");
+        return [];
+    }
+
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT DISTINCT categoria.*
+            FROM categoria
+            WHERE categoria.categoriaSuperior = ? -- Una sola categoría de nivel 2
+            ORDER BY categoria.idNombre ASC;
+        `;
+
+        // Parámetro de la consulta
+        const params = [categoriaNivel2Padre];
+        console.log("Parámetro utilizado:", params);
+
+        // Ejecutar la consulta
+        const [rows] = await connection.execute(query, params);
+
+        console.log("Resultados obtenidos:", rows);
+        return rows || [];
+    } catch (error) {
+        console.error(
+            "Error obteniendo categorías de nivel 3 según la categoría padre:",
+            error
+        );
+        throw new Error("Error al obtener las categorías de nivel 3.");
+    } finally {
+        connection.release();
+        console.log("Conexión liberada.");
+    }
+};
+
+
+export const categoriasNivel2PorPadre = async (
+    categoriaNivel1Padre: string // Una sola categoría de nivel 1
+) => {
+    console.log("Categoría de nivel 1 recibida:", categoriaNivel1Padre);
+
+    // Validar que el parámetro no esté vacío
+    if (!categoriaNivel1Padre) {
+        console.warn("El parámetro de categoría de nivel 1 está vacío. No se puede ejecutar la consulta.");
+        return [];
+    }
+
+    const connection = await db.getConnection();
+    try {
+        const query = `
+            SELECT DISTINCT categoria.*
+            FROM categoria
+            WHERE categoria.categoriaSuperior = ? -- Una sola categoría de nivel 1
+            ORDER BY categoria.idNombre ASC;
+        `;
+
+        // Parámetro de la consulta
+        const params = [categoriaNivel1Padre];
+        console.log("Parámetro utilizado:", params);
+
+        // Ejecutar la consulta
+        const [rows] = await connection.execute(query, params);
+
+        console.log("Resultados obtenidos:", rows);
+        return rows || [];
+    } catch (error) {
+        console.error(
+            "Error obteniendo categorías de nivel 2 según la categoría padre:",
+            error
+        );
+        throw new Error("Error al obtener las categorías de nivel 2.");
+    } finally {
+        connection.release();
+        console.log("Conexión liberada.");
+    }
+};
+
+
 
 
 
@@ -1343,6 +1526,41 @@ export const getComponentesCategoriaPrimerNivel = async (roadmap: string) => {
         connection.release();
     }
 };
+
+export const getComponentesCategoriaPrimerNivelSoloRoadmap = async (roadmap: string) => {
+    const connection = await db.getConnection();
+    try {
+        // Consulta para categorías directas del roadmap
+        const queryDirectCategories = `
+            SELECT 
+                s.numeroStep AS orden,
+                s.idRoadmap,
+                s.idCategoria AS componenteCategoria
+            FROM 
+                step s
+            JOIN 
+                categoria c
+            ON 
+                s.idCategoria = c.idNombre
+            WHERE 
+                s.idRoadmap = ?
+                AND c.categoriaSuperior = 'global'
+            ORDER BY 
+                s.numeroStep;
+        `;
+
+        // Ejecutar la consulta
+        const [directCategories] = await connection.execute<IRoadmapComponentePrioridad[]>(queryDirectCategories, [roadmap]);
+
+        return directCategories || [];
+    } catch (error) {
+        console.error('Error getting direct categorias de primer nivel:', error);
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
 
 
 

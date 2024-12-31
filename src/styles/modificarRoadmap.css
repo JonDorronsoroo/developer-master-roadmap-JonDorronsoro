@@ -1,0 +1,122 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.content {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1rem;
+    color: #555;
+}
+
+/* Estilos del acordeón */
+.accordion-container {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 1rem 0;
+}
+
+.accordion-item {
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s ease;
+}
+
+.accordion-header:hover {
+    background-color: #0056b3;
+}
+
+.accordion-content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.accordion-content-header span {
+    flex: 1;
+    text-align: left;
+}
+
+.category-checkbox {
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background-color: #f9f9f9;
+    border-top: 1px solid #ddd;
+    padding: 0 15px;
+}
+
+.accordion-item.active .accordion-content {
+    max-height: 500px;
+    padding: 10px 15px;
+}
+
+/* Estilo específico para los hijos de nivel 2 */
+.accordion-container .accordion-item .accordion-container .accordion-item {
+    background-color: #ffa500;
+    /* Naranja */
+}
+
+.accordion-container .accordion-item .accordion-container .accordion-item .accordion-header {
+    background-color: #ff7f00;
+    /* Tonalidad más oscura de naranja para encabezados */
+    color: white;
+}
+
+.accordion-container .accordion-item .accordion-container .accordion-item .accordion-header:hover {
+    background-color: #e67500;
+    /* Tonalidad más oscura al pasar el cursor */
+}
+
+/* Estilo específico para los hijos de nivel 3 */
+.accordion-container .accordion-item .accordion-container .accordion-item .accordion-container .accordion-item {
+    background-color: #32cd32;
+    /* Verde */
+}
+
+.accordion-container .accordion-item .accordion-container .accordion-item .accordion-container .accordion-item .accordion-header {
+    background-color: #228b22;
+    /* Verde más oscuro para encabezados */
+    color: white;
+}
+
+.accordion-container .accordion-item .accordion-container .accordion-item .accordion-container .accordion-item .accordion-header:hover {
+    background-color: #1e7b1e;
+    /* Verde más oscuro al pasar el cursor */
+}

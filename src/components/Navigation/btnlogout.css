@@ -1,4 +1,4 @@
-/* From Uiverse.io by satyamchaudharydev */ 
+/* From Uiverse.io by satyamchaudharydev */
 .button-out {
   padding: 0;
   margin: 0;
@@ -57,7 +57,6 @@
 
 .button-out p::before {
   position: absolute;
-  /*   box-sizing: border-box; */
   content: "Logout";
   width: 0%;
   inset: 0;
@@ -68,7 +67,7 @@
 
 .button-out:hover::after {
   width: 100%;
-  
+
 }
 
 .button-out:hover p::before {
@@ -87,14 +86,6 @@
   width: 17px;
   transition-delay: 0.2s;
 }
-
-
-
-
-
-
-
-
 
 /* From Uiverse.io by meermubashar */
 .custom-button {
@@ -136,4 +127,3 @@
 .custom-button:active::before {
   background: #b9b9b9;
 }
-

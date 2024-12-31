@@ -61,7 +61,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
         // Insertar el nuevo roadmap
         try {
-            const idRoadmap = await insertNuevoRoadmap(titulo, descripcion);
+            const idRoadmap = await insertNuevoRoadmap(titulo, descripcion, "");
             // Continuar con el proceso si el roadmap es nuevo
         } catch (error) {
             console.log("Error capturado:", error);
@@ -100,7 +100,7 @@ export async function POST(context: APIContext): Promise<Response> {
                 } else {
                     idEtiqueta = await getEtiquetaId(categoria.id);
                 }
-                //await insertEsquemaRoadmapEtiqueta(titulo, idEtiqueta);
+                await insertEsquemaRoadmapEtiqueta(titulo, idEtiqueta);
                 const idElementoReutilizable = await insertElementoReutilizable(titulo, idEtiqueta);
 
 
@@ -110,36 +110,6 @@ export async function POST(context: APIContext): Promise<Response> {
                 //const idElemento = await getIdElementoReutilizable(categoria.id);
                 await insertStep(categoria.orden.toString(), titulo, null, categoria.id);
 
-
-
-                /*
-                // Obtener categorías de nivel 1 asociadas al roadmap reutilizable
-                const categoriasNivel1 = await getComponentesCategoriaPrimerNivel(categoria.id);
-                console.log("Categorías de nivel 1:", categoriasNivel1);
-
-                for (const nivel1 of categoriasNivel1) {
-                    // Insertar cada categoría de nivel 1 como un paso
-                    await insertStep(categoria.orden.toString(), titulo, nivel1.componenteCategoria, null);
-
-                    // Obtener las categorías de nivel 2 asociadas a cada nivel 1
-                    const categoriasNivel2 = await getComponentesCategoriaSegundoNivel(categoria.id);
-                    console.log("Categorías de nivel 2 para", nivel1.componenteCategoria, categoriasNivel2);
-
-                    for (const nivel2 of categoriasNivel2) {
-                        // Insertar cada categoría de nivel 2 como un paso
-                        await insertStep("", titulo, nivel2.componenteCategoria, null);
-
-                        // Obtener las categorías de nivel 3 asociadas a cada nivel 2
-                        const categoriasNivel3 = await getComponentesCategoriaTercerNivel(categoria.id, nivel1.componenteCategoria);
-                        console.log("Categorías de nivel 3 para", nivel2.componenteCategoria, categoriasNivel3);
-
-                        for (const nivel3 of categoriasNivel3) {
-                            // Insertar cada categoría de nivel 3 como un paso
-                            await insertStep("", titulo, nivel3.componenteCategoria, null);
-                        }
-                    }
-                }
-                    */
             }
         }
         let ordenNivel2 = ordenCategorias.length + 1;

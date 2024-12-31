@@ -1,57 +1,48 @@
 ---
 import SimplePageHeader from "../../components/SimplePageHeader.astro";
-import { getAllRecursos, getRoadmapAlmacenados} from "../../database/consultas";
+import { getRoadmapAlmacenados } from "../../database/consultas";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import '../../styles/formulario.css'
 
-const roadmap = await getRoadmapAlmacenados();
+import '../../styles/formulario.css';
 
+const roadmaps = await getRoadmapAlmacenados();
+const roadmapsNames = roadmaps?.map((roadmap) => roadmap.idRoadmap);
 
+console.log("roadmapak", roadmaps);
 ---
 
-<BaseLayout title='Onboarding' permalink={'/modificar/escogerRoadmap'}>
-    <SimplePageHeader
-    title='Selecciona el itinerario a modificar'
-    description="Modificar cualquier error en el contenido de cualquier recurso"
-
+<BaseLayout title="Onboarding" permalink={'/modificar/escogerRoadmap'}>
+  <SimplePageHeader
+    title="Selecciona el itinerario"
+    description="Selecciona el roadmap que deseas modificar"
   />
 
+<form method="GET" class="form-container" action="/modificar/modifyRoadmap">
+  <fieldset>
+    <legend>¿Qué deseas modificar?</legend>
+    <label for="roadmap">Selecciona el roadmap que deseas modificar:</label>
+    <input type="hidden" id="roadmapR" name="id"> <!-- Asegúrate de usar "id" -->
+    <input type="text" id="input-box" placeholder="Buscar roadmap" autocomplete="off">
 
-  <form method ="POST"  enctype="multipart/form-data" class="form-container" action="/api/modificar">
-    <input type="hidden" name="formType" value="escogerRoadmap" />
-    <fieldset>
-        <legend>recursos de aprendizaje</legend>
-        <label for="titulo">Modifica los apartados que desees del recurso elegido</label>
-        <input type="hidden" id="roadmapR" name="roadmapR">
-        <input type="text" id="input-box" placeholder="Buscar recurso..." autocomplete="off">
+    <div id="custom-dropdown" class="custom-dropdown">
+      <ul id="dropdown-options" class="dropdown-options">
+        {roadmapsNames?.map((roadmap: string) => (
+          <li value={roadmap}>{roadmap}</li>
+        ))}
+      </ul>
+    </div>
+  </fieldset>
+  <div class="button-container">
+    <button type="submit">Next</button>
+  </div>
+</form>
 
-            <div id="custom-dropdown" class="custom-dropdown">
-                <ul id="dropdown-options" class="dropdown-options">
-                    {roadmap?.map((road) => (
-                        <li value={road.idRoadmap}>{road.idRoadmap}</li>
-                    ))}
-                </ul>
-              
-</fieldset>
 
-<div class="button-container">
-  <button type="submit">Next</button>
-</div>
-
-<fieldset>
-  <input  type="file" name="JSON">
-</fieldset>
-
-<div id="correct-message" class="message success"></div>
-<div id="error-message" class="message error"></div>
-
-  </form>
 
   <script>
-    import {  setupDropdown } from '../../utils.js';
-    
+    import { setupDropdown } from '../../utils.js';
 
+    // Configuración del dropdown
     setupDropdown('input-box', 'custom-dropdown', 'roadmapR');
-    </script>
-
+  </script>
 </BaseLayout>

@@ -172,6 +172,9 @@ export async function handleFormSubmit(event, apiUrl) {
         if (response.ok) {
             // Si la respuesta fue exitosa (código 200-299)
             alert("Formulario enviado con éxito");
+
+            // Redirigir al usuario a la página de inicio
+            window.location.href = "http://localhost:4321/home";
         } else {
             // Si la respuesta no fue exitosa (código 400 o 500)
             const errorMessage = result.error || "Error desconocido"; // Ajusta según el campo devuelto por tu backend
@@ -182,8 +185,8 @@ export async function handleFormSubmit(event, apiUrl) {
         console.error("Error al enviar los datos:", error);
         alert("Error al enviar el formulario. Inténtalo de nuevo.");
     }
-
 }
+
 
 
 
@@ -200,6 +203,16 @@ export async function cargarEtiquetas() {
         if (response.ok) {
             const etiquetas = await response.json();
             console.log("Etiquetas obtenidas:", etiquetas); // Ver si la respuesta tiene las etiquetas
+
+            // Ordena las etiquetas primero por tipo y luego por valor
+            const orden = { 'Dificultad': 1, 'Rol': 2, 'Idioma': 3, 'Conocimiento del Roadmap': 4 };
+            etiquetas.sort((a, b) => {
+                // Primero ordena por el tipo (Dificultad, Rol, etc.)
+                const tipoOrden = orden[a.tipo] - orden[b.tipo];
+                if (tipoOrden !== 0) return tipoOrden;
+                // Si el tipo es el mismo, ordena por el valor de la etiqueta alfabéticamente
+                return a.valorEtiqueta.localeCompare(b.valorEtiqueta);
+            });
 
             dropdownOptions.innerHTML = ""; // Limpia el contenido previo
 
@@ -231,8 +244,6 @@ export async function cargarEtiquetas() {
                 // Agrega el elemento a la lista del dropdown
                 dropdownOptions.appendChild(li);
             });
-
-
         } else {
             console.error("Error al obtener etiquetas:", response.statusText);
         }
@@ -240,6 +251,7 @@ export async function cargarEtiquetas() {
         console.error("Error en la solicitud:", error);
     }
 }
+
 
 function handleEtiquetaSelection(event) {
     const selectedEtiquetasContainer =

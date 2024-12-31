@@ -1,0 +1,258 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SimplePageHeader from "../../components/SimplePageHeader.astro";
+import "../../styles/modificarRoadmap.css";
+
+const query = new URL(Astro.request.url).searchParams;
+const roadmapId = query.get("id");  // Obtenemos el roadmapId de la URL
+
+let categoriasNivel1 = [];
+let elementosReutilizables = [];
+
+if (roadmapId) {
+  try {
+    const apiUrl = new URL(`/api/obtenerParaModificar?roadmap=${encodeURIComponent(roadmapId)}`, Astro.site || "http://localhost:4321");
+
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      categoriasNivel1 = data.categoriasNivel1 || [];
+      elementosReutilizables = data.elementosReutilizables || [];
+
+      console.log("Categorías de Nivel 1:", categoriasNivel1);
+      console.log("Elementos Reutilizablessssssssssssssssssssssssssssssssss:", elementosReutilizables);
+    } else {
+      const errorData = await response.json();
+      console.error("Error al obtener datos de la API:", errorData);
+    }
+  } catch (error) {
+    console.error("Error en la llamada a la API:", error);
+  }
+}
+---
+
+<BaseLayout title="Modificar Roadmap" permalink={'/modificar/modifyRoadmap'}>
+  <SimplePageHeader
+    title="Modificar Roadmap"
+    description={roadmapId ? `Estás modificando el roadmap: ${roadmapId}` : "No se seleccionó ningún roadmap."}
+  />
+
+  <div class="container">
+  
+    <div class="content">
+      <!-- Explicación de las categorías -->
+      <p><strong>Instrucciones:</strong> En esta sección, podrás ver las <strong>categorías asociadas</strong> y <strong>generales</strong> para el roadmap seleccionado. Las categorías generales son aquellas disponibles globalmente, mientras que las asociadas son aquellas que ya están vinculadas al roadmap. Puedes seleccionar las categorías que deseas mantener en el roadmap y desmarcar aquellas que no quieras incluir.</p>
+
+      <h2>{roadmapId ? `Roadmap seleccionado: ${roadmapId}` : "No se seleccionó ningún roadmap."}</h2>
+<fieldset class="fieldset-comun" id="roadmapsReutilizablesContainer">
+    <label for="roadmapsReutilizables">Puedes incluir en el nuevo roadmap itinerarios existentes que cumplen con esas etiquetas:</label>
+    <input
+        type="text"
+        id="roadmapsReutilizables"
+        placeholder="Buscar roadmaps reutilizables"
+        autocomplete="off"
+    />
+    <div id="custom-dropdownroadmapsReutilizables" class="custom-dropdown">
+        <ul id="dropdown-optionsroadmapsReutilizables" class="dropdown-options">
+            <!-- Los enlaces a los roadmaps se generarán dinámicamente aquí -->
+        </ul>
+    </div>
+</fieldset>
+
+
+      {roadmapId ? (
+        <div class="accordion-container" id="nivel1Accordion">
+          {categoriasNivel1.length > 0 ? (
+            categoriasNivel1.map((categoria, index) => (
+              <div class="accordion-item" key={index} id={`item-${index}`}>
+                <button class="accordion-header">
+                  <div class="accordion-content-header">
+                    <span>{categoria.componenteCategoria}</span>
+                  </div>
+                </button>
+                <div class="accordion-content">
+                  <div id={`subcategorias-${index}`}></div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No se encontraron categorías para este roadmap.</p>
+          )}
+        </div>
+      ) : (
+        <p>Por favor, selecciona un roadmap desde la página anterior.</p>
+      )}
+
+      <!-- Formulario para enviar los datos -->
+      <form id="roadmapForm">
+        <input type="hidden" name="roadmapId" value={roadmapId} />  <!-- Agregar roadmapId al formulario -->
+        <!-- Otros campos del formulario si es necesario -->
+        <button type="submit" class="create-version-button">Crear nueva versión</button>
+      </form>
+    </div>
+  </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      const selectedCategoriasNivel2 = [];
+      const selectedCategoriasNivel3 = [];
+
+      // Función para actualizar los roadmaps reutilizables en el dropdown
+      async function updateRoadmapsReutilizables() {
+        console.log("Actualizando roadmaps reutilizables");
+
+
+
+        const dificultades = selectedEtiquetas
+          .filter((etiqueta) => etiqueta.startsWith("Dificultad:"))
+          .map((etiqueta) => etiqueta.split(":")[1]);
+
+        const conocimientos = selectedEtiquetas
+          .filter((etiqueta) => etiqueta.startsWith("Conocimiento del Roadmap:"))
+          .map((etiqueta) => etiqueta.split(":")[1]);
+
+        console.log("Roles seleccionados:", roles);
+        console.log("Dificultades seleccionadas:", dificultades);
+        console.log("Conocimientos seleccionados:", conocimientos);
+
+        if (roles.length > 0 && dificultades.length > 0 && conocimientos.length > 0) {
+          try {
+            const response = await fetch(
+              `/api/roadmapsReutilizables?roles=${roles.join(",")}&dificultades=${dificultades.join(",")}&conocimientos=${conocimientos.join(",")}`
+            );
+            const roadmaps = await response.json();
+
+            console.log("Roadmaps reutilizables filtrados:", roadmaps);
+
+            const dropdownOptions = document.getElementById("dropdown-optionsroadmapsReutilizables");
+            dropdownOptions.innerHTML = ""; 
+
+            roadmaps.forEach((roadmap) => {
+              if (!roadmap.idRoadmap) {
+                console.warn("El roadmap no tiene un idRoadmap válido:", roadmap);
+                return;
+              }
+
+              const li = document.createElement("li");
+              li.style.padding = "5px";
+              li.style.listStyleType = "none";
+
+              const checkbox = document.createElement("input");
+              checkbox.type = "checkbox";
+              checkbox.id = `checkbox-${roadmap.idRoadmap}`;
+              checkbox.value = roadmap.idRoadmap;
+              checkbox.style.marginRight = "10px";
+
+              const link = document.createElement("a");
+              link.href = `/${encodeURIComponent(roadmap.idRoadmap)}`;
+              link.textContent = roadmap.idRoadmap;
+              link.style.textDecoration = "none";
+              link.style.color = "inherit";
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+
+              li.appendChild(checkbox);
+              li.appendChild(link);
+              dropdownOptions.appendChild(li);
+            });
+          } catch (error) {
+            console.error("Error al cargar los roadmaps reutilizables:", error);
+          }
+        } else {
+          console.warn("Faltan categorías seleccionadas. No se puede actualizar.");
+        }
+      }
+
+      // Llamar a la función para actualizar los roadmaps reutilizables al cargar la página
+      updateRoadmapsReutilizables();
+
+      // Delegar eventos para los checkboxes en el contenedor principal
+      const headers = document.querySelectorAll(".accordion-header");
+
+      headers.forEach((header) => {
+        header.addEventListener("click", async () => {
+          const parent = header.parentNode;
+          parent.classList.toggle("active");
+
+          const content = parent.querySelector(".accordion-content");
+          if (content.style.maxHeight) {
+            content.style.maxHeight = null;
+            const existingSubAccordion = content.querySelector(".accordion-container");
+            if (existingSubAccordion) {
+              existingSubAccordion.remove();
+            }
+          } else {
+            if (!content.querySelector(".accordion-container")) {
+              const roadmapId = new URLSearchParams(window.location.search).get("id");
+              const categoriaNivel1 = header.querySelector(".accordion-content-header span").textContent;
+
+              if (roadmapId && categoriaNivel1) {
+                try {
+                  const apiUrl = `/api/obtenerParaModificar?roadmap=${encodeURIComponent(
+                    roadmapId
+                  )}&categoriaNivel1=${encodeURIComponent(categoriaNivel1)}`;
+
+                  const response = await fetch(apiUrl, {
+                    method: "GET",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  });
+
+                  if (response.ok) {
+                    const { generales, asociadas } = await response.json();
+
+                    const subAccordion = document.createElement("div");
+                    subAccordion.className = "accordion-container";
+
+                    generales.forEach((categoriaNivel2) => {
+                      const isChecked = asociadas.some(
+                        (asociada) =>
+                          asociada.componenteCategoria.trim().toLowerCase() ===
+                          categoriaNivel2.idNombre.trim().toLowerCase()
+                      );
+
+                      const item = document.createElement("div");
+                      item.className = "accordion-item";
+                      item.innerHTML = `
+                        <button class="accordion-header">
+                          <div class="accordion-content-header">
+                            <span>${categoriaNivel2.idNombre}</span>
+                            <input type="checkbox" class="categoria2-checkbox" ${
+                          isChecked ? "checked" : ""
+                        } />
+                          </div>
+                        </button>
+                        <div class="accordion-content"></div>
+                      `;
+
+                      subAccordion.appendChild(item);
+                    });
+
+                    content.appendChild(subAccordion);
+                    content.style.maxHeight = `${content.scrollHeight}px`;
+                  }
+                } catch (error) {
+                  console.error("Error en la solicitud a la API:", error);
+                }
+              }
+            } else {
+              content.style.maxHeight = `${content.scrollHeight}px`;
+            }
+          }
+        });
+      });
+
+      // Resto del script permanece sin cambios
+    });
+  </script>
+
+
+</BaseLayout>

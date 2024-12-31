@@ -1,8 +1,8 @@
 ---
 import SimplePageHeader from "../../components/SimplePageHeader.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { type ICategoria, type IRol } from "../../database/dbMySQL";
-import { getAllCategorias, getAllRoles } from "../../database/consultas";
+import { type ICategoria, type IEtiqueta } from "../../database/dbMySQL";
+import { getAllCategorias, getEtiquetas } from "../../database/consultas";
 import '../../styles/formulario.css';
 import '../../styles/editor.css'
 import "../../components/Button/ButtonSave.astro"
@@ -11,22 +11,19 @@ import fs from 'fs-extra';
 import path from 'path';
 
 const htmlContent = await fs.readFile(path.resolve('src/components/Editor/editor.html'), 'utf-8');
-
 const quillHTML = await fs.readFile(path.resolve('src/components/Editor/bubbleQuillEditor.html'),'utf-8');
 
 const user = Astro.locals.user;
-if(!user){
-    return Astro.redirect("/auth/signin")
-}else if(user && (!user.admin || user.admin==0)){
-    return Astro.redirect("/home")
-    
+if (!user) {
+    return Astro.redirect("/auth/signin");
+} else if (user && (!user.admin || user.admin == 0)) {
+    return Astro.redirect("/home");
 }
 
 const categorias = await getAllCategorias();
 const categoriasNames = categorias?.map((categoria: ICategoria) => categoria.idNombre);
-const roles = await getAllRoles();
-const rolesNames = roles?.map((rol:IRol)=> rol.idRol)
-
+const etiquetas = await getEtiquetas();
+const etiquetasList = etiquetas?.map((etiqueta: IEtiqueta) => `${etiqueta.tipo}: ${etiqueta.valorEtiqueta}`);
 ---
 
 <BaseLayout title='Onboarding' permalink={'/addBD/addCategoria'}>
@@ -35,86 +32,135 @@ const rolesNames = roles?.map((rol:IRol)=> rol.idRol)
         description='Incluir en el almacenamiento de la empresa un nueva categoría:'
     />
 
+<form id="categoriaForm" class="form-container" autocomplete="off">
+    <fieldset>
+        <label class="required-field" for="titulo">Título:</label>
+        <div id="editorTitulo" aria-required="true"></div>
+        <br>
 
-    <form id="categoriaForm" class="form-container" autocomplete="off">
-        <fieldset>
-            <label  class="required-field" for="titulo">Título:</label>
-            <div id="editorTitulo" aria-required="true">
-            </div>
+        <label class="required-field" for="descripcion">Descripción:</label>
+        <div id="editorDescripcion"></div> <!-- Mantén solo este editor -->
+        <br><br>
 
-            <br>
-            
+        <input type="hidden" id="categoriaPadre" name="categoriaPadre" value="Global">
 
+        <label for="categoriaPadre">Pertenece a alguna categoría más global:</label>
+        <input type="text" id="input-box" placeholder="Buscar categoría" autocomplete="off">
+        <div id="custom-dropdown" class="custom-dropdown">
+            <ul id="dropdown-options" class="dropdown-options">
+                <li value="Global">Ninguna</li>
+                {categoriasNames?.map((categoria: string) => (
+                    <li value={categoria}>{categoria}</li>
+                ))}
+            </ul>
+        </div>
+    </fieldset>
 
-            <label class="required-field" for="descripcion">Descripción:</label>
+    <fieldset>
+        <label for="etiquetas">Escoge las etiquetas:</label>
+        <input type="text" id="search-etiquetas" placeholder="Buscar etiqueta" autocomplete="off">
+        <div id="etiquetas-dropdown" class="custom-dropdown">
+            <ul id="etiquetas-options" class="dropdown-options">
+                {etiquetasList?.map((etiqueta: string) => (
+                    <li>
+                        <label>
+                            <input type="checkbox" class="etiqueta-checkbox" name="etiqueta" value={etiqueta} /> {etiqueta}
+                        </label>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    </fieldset>
 
-            <section set:html={htmlContent}>
-            </section>
-            
-            <div id="editorDescripcion"></div>
-
-
-            <br>
-            <br>
-            <input type="hidden" id="categoriaPadre" name="categoriaPadre" value="Global">
-
-
-            <label  for="categoriaPadre">Pertenece a alguna categoría más global:</label>
-    
-            
-            <input type="text" id="input-box" placeholder="Buscar categoría" autocomplete="off">
-
-            <div id="custom-dropdown" class="custom-dropdown">
-                <ul id="dropdown-options" class="dropdown-options">
-                    <li value="Global">Ninguna</li>
-                    {categoriasNames?.map((categoria: string) => (
-                        <li value={categoria}>{categoria}</li>
-                    ))}
-                </ul>
-            </div>
-
-        </fieldset>
-
-        <fieldset>
-            <label>Dirigido, ¿a qué rol? (Por defecto, a todos): </label>
-            {rolesNames?.map((rol:string) => (
-                 <label><input type="checkbox" name="rolCategoria" value={rol} checked/> {rol}</label>
-            ))}
-            
-           
-        </fieldset>
-
-        <center>
-
-          
-
-
-    <ButtonSave></ButtonSave>
-
-    
-</center>
-<div id="correct-message" class="message success"></div>
-<div id="error-message" class="message error"></div>
-
+    <center>
+        <ButtonSave></ButtonSave>
+    </center>
+    <div id="correct-message" class="message success"></div>
+    <div id="error-message" class="message error"></div>
 </form>
-       
 
 
-<section set:html={quillHTML}></section>
-
+    <section set:html={quillHTML}></section>
 
     <script>
-      import { setUpEditorFormHandle, setupDropdown, setupFormSubmission } from '../../utils.js';
+    import { setUpEditorFormHandle, setupDropdown } from '../../utils.js';
 
-      setUpEditorFormHandle('categoriaForm');
-
-        setupFormSubmission('categoriaForm', '/api/addCategoria');
-        setupDropdown('input-box', 'custom-dropdown', 'categoriaPadre');
-
+    // Inicializa los editores
+    const quillTitulo = new Quill('#editorTitulo', { theme: 'bubble' });
+    const quillDescripcion = new Quill('#editorDescripcion', { theme: 'bubble' });
 
 
-   
-  </script>
+    // Configuración de formularios y dropdowns
+    setUpEditorFormHandle('categoriaForm');
+    setupDropdown('input-box', 'custom-dropdown', 'categoriaPadre');
+    setupDropdown('search-etiquetas', 'etiquetas-dropdown', 'etiquetas-options');
 
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('categoriaForm');
+    const quillTitulo = new Quill('#editorTitulo', { theme: 'bubble' });
+    const quillDescripcion = new Quill('#editorDescripcion', { theme: 'bubble' });
+
+    // Limpia el contenido del editor Quill
+    function cleanContent(quillInstance) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = quillInstance.root.innerHTML.trim(); // Procesa el contenido del editor
+
+        // Extrae solo texto útil
+        const cleanedText = tempDiv.textContent.trim();
+        return cleanedText || ''; // Asegúrate de que no devuelva `null` o `undefined`
+    }
+
+form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Evita el envío por defecto del formulario.
+
+    // Extraer datos del formulario.
+    const titulo = cleanContent(quillTitulo); // Obtener texto del editor de título
+    const descripcion = cleanContent(quillDescripcion); // Obtener texto del editor de descripción
+    const categoriaPadre = document.getElementById('categoriaPadre').value;
+    const etiquetasSeleccionadas = Array.from(document.querySelectorAll('.etiqueta-checkbox:checked'))
+        .map(checkbox => checkbox.value);
+
+    // Validación básica
+    if (!titulo || !descripcion) {
+        alert("Por favor, rellena los campos de título y descripción.");
+        return;
+    }
+
+    // Preparar datos para enviar a la API
+    const formData = new FormData();
+    formData.append('titulo', titulo);
+    formData.append('descripcion', descripcion);
+    formData.append('categoriaPadre', categoriaPadre);
+    formData.append('etiquetas', JSON.stringify(etiquetasSeleccionadas));
+
+    try {
+        // Enviar datos a la API
+        const response = await fetch('/api/addCategoria', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const result = await response.json();
+
+        // Mostrar mensajes de éxito o error
+        if (response.ok) {
+            alert(result.message); // Muestra la alerta con el mensaje de éxito
+            window.location.href = '/home'; // Redirige al usuario a la página de inicio
+        } else {
+            document.getElementById('error-message').textContent = result.message || 'Error al enviar los datos.';
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('correct-message').style.display = 'none';
+        }
+    } catch (error) {
+        console.error("Error al enviar los datos:", error);
+        document.getElementById('error-message').textContent = 'Error interno al procesar los datos.';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('correct-message').style.display = 'none';
+    }
+});
+
+});
+
+</script>
 
 </BaseLayout>
