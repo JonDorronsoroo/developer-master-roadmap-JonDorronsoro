@@ -46,7 +46,9 @@ export async function POST(context: APIContext): Promise<Response> {
                     for (const etiqueta of etiquetas) {
                         const [tipo, valorEtiqueta] = etiqueta.split(': ');
                         try {
-                            const etiquetaId = await getEtiquetaIdPorTipoYValor(tipo, parseInt(valorEtiqueta, 10));
+                            // Verifica si el valorEtiqueta es un número o una cadena
+                            const etiquetaId = await getEtiquetaIdPorTipoYValor(tipo, isNaN(valorEtiqueta) ? valorEtiqueta : parseInt(valorEtiqueta, 10));
+
                             if (etiquetaId) {
                                 console.log("Insertando etiqueta con id:", etiquetaId);
                                 await insertCategoriaEtiqueta(nombre, etiquetaId); // Usar nombre y etiquetaId
@@ -57,6 +59,7 @@ export async function POST(context: APIContext): Promise<Response> {
                             console.error("Error al insertar etiqueta con tipo y valor:", etiqueta, error);
                         }
                     }
+
                 }
 
                 return new Response(JSON.stringify({ message: "Categoría insertada correctamente" }), {

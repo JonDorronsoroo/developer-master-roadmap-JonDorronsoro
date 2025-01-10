@@ -2,65 +2,64 @@
 import SimplePageHeader from "../../components/SimplePageHeader.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import '../../styles/formulario.css';
-import {getAllRecursos} from '../../database/consultas.ts';
-import {getAllCategorias} from '../../database/consultas.ts';
+import { getAllRecursos } from '../../database/consultas.ts';
+import { getAllCategorias } from '../../database/consultas.ts';
+import { getEtiquetas } from '../../database/consultas.ts';
 
 const user = Astro.locals.user;
-if(!user){
-    return Astro.redirect("/auth/signin")
+if (!user) {
+    return Astro.redirect("/auth/signin");
 }
-
 
 const categorias = await getAllCategorias();
 var categoriasNames = categorias?.map((categoria) => categoria.idNombre);
+
 const recursos = await getAllRecursos();
-var recursosNames = recursos?.map((recurso)=> recurso.titulo)
-console.log(recursosNames)
+var recursosNames = recursos?.map((recurso) => recurso.titulo);
+
+const etiquetas = await getEtiquetas();
+const etiquetasList = etiquetas?.map((etiqueta) => `${etiqueta.tipo}: ${etiqueta.valorEtiqueta}`);
 ---
 
 <BaseLayout title='Onboarding' permalink={'/enviarOpinion'}>
     <SimplePageHeader
-    title='Developer Roadmaps'
-    description='Incluir en el almacenamiento de la empresa un nuevo recurso:'
-  />
+        title='Developer Roadmaps'
+        description='Incluir en el almacenamiento de la empresa un nuevo recurso:'
+    />
 
+    <form id="recursoForm" class="form-container">
+        <fieldset>
+            <label class="required-field" for="titulo">Título:</label>
+            <input
+                type="text"
+                id="titulo"
+                name="titulo"
+                required
+                placeholder="Título del recurso" aria-required="true"
+            />
 
-  <form id="recursoForm" class="form-container">
-    <fieldset>
-        <label class="required-field"  for="titulo" >Título:</label>
-        <input
-          type="text"
-          id="titulo"
-          name="titulo"
-          required
-          placeholder="Título del recurso" aria-required="true"
-        />
+            <label class="required-field" for="enlaceFichero">Enlace al fichero:</label>
+            <input
+                type="text"
+                id="enlaceFichero"
+                name="enlaceFichero"
+                required
+                placeholder="Enlace del fichero" aria-required="true"
+            />
 
-        <label class="required-field" for="enlaceFichero">Enlace al fichero:</label>
-        <input
-          type="text"
-          id="enlaceFichero"
-          name="enlaceFichero"
-          required
-          placeholder="Enlace del fichero" aria-required="true"
-        />
-
-        <label class="required-field" for="interno">¿Este recurso ha sido creado por LKS?:</label>
-            <div class="radio-container" >
-                <input type="radio" id="interno" name="internoExterno" value="true" required/>
+            <label class="required-field" for="interno">¿Este recurso ha sido creado por LKS?:</label>
+            <div class="radio-container">
+                <input type="radio" id="interno" name="internoExterno" value="true" required />
                 <label for="interno">Sí</label>
 
-                <input type="radio" id="externo" name="internoExterno" value="false" required/>
+                <input type="radio" id="externo" name="internoExterno" value="false" required />
                 <label for="intermedio">No</label>
-              </div>
-        
+            </div>
 
+            <input type="hidden" id="categoria" name="categoria">
 
-        <input type="hidden" id="categoria" name="categoria">
-
-        <label class="required-field" for="categoriaLabel">Elige una categoría:</label>
-        <input type="text" id="input-box" placeholder="Buscar categoría" autocomplete="off">
-
+            <label class="required-field" for="categoriaLabel">Elige una categoría:</label>
+            <input type="text" id="input-box" placeholder="Buscar categoría" autocomplete="off">
             <div id="custom-dropdown" class="custom-dropdown">
                 <ul id="dropdown-options" class="dropdown-options">
                     <li value="Global">Ninguna</li>
@@ -69,75 +68,21 @@ console.log(recursosNames)
                     ))}
                 </ul>
             </div>
-
-          </fieldset>
+        </fieldset>
 
         <fieldset>
-           
-     
-        <label for="descripcion">Descripción:</label>
-        <textarea
-          id="descripcion"
-          name="descripcion"
-          cols="50"
-          rows="5"
-          placeholder="Descripción..."
-        ></textarea>
-        
+            <label for="descripcion">Descripción:</label>
+            <textarea
+                id="descripcion"
+                name="descripcion"
+                cols="50"
+                rows="5"
+                placeholder="Descripción..."
+            ></textarea>
 
-        <label for="dificultad">Nivel de dificultad:</label>
-
-            <div class="radio-container">
-                <input type="radio" id="principiante" name="dificultad" value="Principiante"/>
-                <label for="principiante">Principiante</label>
-                
-                <input type="radio" id="intermedio" name="dificultad" value="Intermedio"/>
-                <label for="intermedio">Intermedio</label>
-                
-                <input type="radio" id="avanzado" name="dificultad" value="Avanzado"/>
-                <label for="avanzado">Avanzado</label>
-              </div>
-
-        <label for="idioma">Idioma:</label>
-              <select id="idioma" name="idioma" >
-                <option value="" disabled selected>Escoger idioma...</option>
-                <option value="Castellano">Castellano</option>
-                <option value="Euskera">Euskera</option>
-                <option value="Ingles">Inglés</option>
-                <option value="Otro">Otro...</option>
-              </select>
-
-        <label for="tipo">¿Qué tipo es?:</label>
-              <select id="tipo" name="tipo" >
-                <option value="" disabled selected>Escoger tipo...</option>
-                <option value="Curso de pago ">Curso de pago</option>
-                <option value="Curso gratuito">Curso gratuito</option>
-                <option value="Webinar">Webinars</option>
-                <option value="Libro">Libro</option>
-                <option value="Guia">Guía</option>
-                <option value="Tutorial">Tutorial</option>
-                <option value="Articulo">Artículo</option>
-                <option value="Otro">Otro...</option>
-              </select>
-
-              <label for="formato">¿Qué formato tiene?:</label>
-              <select id="formato" name="formato" >
-                <option value="" disabled selected>Escoger formato...</option>
-                <option value="PDF">PDF</option>
-                <option value="Video">Vídeo</option>
-                <option value="Imagen">Imagen</option>
-                <option value="Presentacion">Presentación</option>
-                <option value="Otro">Otro...</option>
-              </select>
-
-
-            </fieldset>
-
-            <label for="otrosRecursos">¿Esta relacionado con algún otro?:</label>
-
+            <label for="otrosRecursos">¿Está relacionado con algún otro?:</label>
             <input type="hidden" id="recursoRelacion" name="recursoRelacion">
-        <input type="text" id="input-boxRecurso" placeholder="Buscar recurso relacionado..." autocomplete="off">
-
+            <input type="text" id="input-boxRecurso" placeholder="Buscar recurso relacionado..." autocomplete="off">
             <div id="custom-dropdownRecurso" class="custom-dropdown">
                 <ul id="dropdown-optionsRecurso" class="dropdown-options">
                     {recursosNames?.map((recurso: string) => (
@@ -146,24 +91,102 @@ console.log(recursosNames)
                 </ul>
             </div>
 
+            <label for="etiquetas">Escoge las etiquetas:</label>
+            <input type="text" id="search-etiquetas" placeholder="Buscar etiqueta" autocomplete="off">
+            <div id="etiquetas-dropdown" class="custom-dropdown">
+                <ul id="etiquetas-options" class="dropdown-options">
+                    {etiquetasList?.map((etiqueta: string) => (
+                        <li>
+                            <label>
+                                <input type="checkbox" class="etiqueta-checkbox" name="etiqueta" value={etiqueta} /> {etiqueta}
+                            </label>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </fieldset>
 
-            <div class="button-container">
-              <button type="submit">Guardar</button>
-          </div>
-  
-          <div id="correct-message" class="message success"></div>
-          <div id="error-message" class="message error"></div>
-</form>
+        <div class="button-container">
+            <button type="submit">Guardar</button>
+        </div>
 
-<script>
-import {  setupDropdown, setupFormSubmission } from '../../utils.js';
+        <div id="correct-message" class="message success"></div>
+        <div id="error-message" class="message error"></div>
+    </form>
 
-// Setup form submission handling
-setupFormSubmission('recursoForm', '/api/addRecurso');
+    <script>
+    import { setupDropdown } from '../../utils.js';
 
-// Initialize dropdowns
-setupDropdown('input-box', 'custom-dropdown', 'categoria');
-setupDropdown('input-boxRecurso', 'custom-dropdownRecurso', 'recursoRelacion');
+    // Initialize dropdowns
+    setupDropdown('input-box', 'custom-dropdown', 'categoria');
+    setupDropdown('input-boxRecurso', 'custom-dropdownRecurso', 'recursoRelacion');
+    setupDropdown('search-etiquetas', 'etiquetas-dropdown', 'etiquetas-options');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('recursoForm');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            // Recoger los datos del formulario
+            const titulo = document.getElementById('titulo').value;
+            const enlaceFichero = document.getElementById('enlaceFichero').value;
+            const descripcion = document.getElementById('descripcion').value;
+            const interno = document.querySelector('input[name="internoExterno"]:checked')?.value;
+            const categoria = document.getElementById('categoria').value;
+            const recursoRelacion = document.getElementById('recursoRelacion').value;
+            const etiquetasSeleccionadas = Array.from(
+                document.querySelectorAll('.etiqueta-checkbox:checked')
+            ).map(checkbox => checkbox.value);
+
+            // Log de etiquetas seleccionadas
+            console.log("Etiquetas seleccionadass:", etiquetasSeleccionadas);
+
+            // Validar campos obligatorios
+            if (!titulo || !enlaceFichero || !categoria) {
+                alert("Por favor, rellena todos los campos obligatorios.");
+                return;
+            }
+
+            if (etiquetasSeleccionadas.length === 0) {
+                alert("Por favor, selecciona al menos una etiqueta.");
+                return;
+            }
+
+            // Preparar datos para enviar
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('descripcion', descripcion);
+            formData.append('enlaceFichero', enlaceFichero);
+            formData.append('internoExterno', interno);
+            formData.append('categoria', categoria);
+            formData.append('recursoRelacion', recursoRelacion);
+            formData.append('etiquetas', JSON.stringify(etiquetasSeleccionadas));
+
+            try {
+                const response = await fetch('/api/addRecurso', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.href = '/home'; // Redirigir tras éxito
+                } else {
+                    document.getElementById('error-message').textContent = result.message || 'Error al enviar los datos.';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('correct-message').style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Error al enviar los datos:", error);
+                document.getElementById('error-message').textContent = 'Error interno al procesar los datos.';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('correct-message').style.display = 'none';
+            }
+        });
+    });
 </script>
 
 

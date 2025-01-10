@@ -24,10 +24,13 @@ if (Astro.request.method === "POST") {
     if (etiquetaSeleccionada) {
         try {
             // Extraer el valorEtiqueta de "tipo:valor"
-            const valorEtiqueta = etiquetaSeleccionada.split(":")[1].trim(); // Obtiene solo el valor (ej. "Euskera")
+            const valorEtiqueta = etiquetaSeleccionada.split(":" )[1].trim(); // Obtiene solo el valor (ej. "Euskera")
             await eliminarEtiqueta(valorEtiqueta);
             console.log(`Etiqueta con valor "${valorEtiqueta}" eliminada correctamente.`);
-            return Astro.redirect("/Eliminar/eliminarEtiqueta"); // Redirigir tras la eliminación
+            return new Response(
+                `<script>alert('Etiqueta eliminada correctamente.'); window.location.href = 'http://localhost:4321/home';</script>`,
+                { status: 200, headers: { "Content-Type": "text/html" } }
+            );
         } catch (error) {
             console.error("Error al eliminar la etiqueta:", error);
         }

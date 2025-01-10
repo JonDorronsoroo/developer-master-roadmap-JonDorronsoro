@@ -27,6 +27,25 @@ export class ProblemaBD extends Error {
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  INSERT INTO BD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+export const insertRecursoEtiqueta = async (categoria: number, etiqueta: number): Promise<number | undefined> => {
+    const connection = await db.getConnection();
+    try {
+        let query: string;
+        let result: ResultSetHeader;
+
+
+        query = `INSERT INTO recurso_etiqueta (idRecurso, idEtiqueta) VALUES (?, ?)`;
+        [result] = await connection.execute<ResultSetHeader>(query, [categoria, etiqueta]);
+
+
+        return result.insertId;
+    } catch (error) {
+        console.error('Error adding relacion categoria-etiqueta:', error);
+    } finally {
+        connection.release();
+    }
+};
+
 
 
 
@@ -288,38 +307,49 @@ export async function insertStep(
 
 
 
-
-
-
-
-
-export const insertResource = async (titulo: string, enlaceFichero: string, interno: boolean, descripcion: string | null, n_Dificultad: string | null, tipo: string | null, formato: string | null, idioma: string | null, deInteres: number | null) => {
+export const insertResource = async (
+    titulo: string,
+    enlaceFichero: string,
+    interno: boolean,
+    descripcion: string | null
+): Promise<number> => {
     const connection = await db.getConnection();
     const internoExterno = interno ? 1 : 0;
-    const dificultad = n_Dificultad ? `'${n_Dificultad}'` : null;
-    const tipoRecurso = tipo ? `'${tipo}'` : null;
-    const formatoRecurso = formato ? `'${formato}'` : null;
-    const idiomaRecurso = idioma ? `'${idioma}'` : null;
-    const deInteresRecurso = deInteres ? `'${deInteres}'` : null;
 
     try {
+        const [rows] = await connection.execute(`SELECT MAX(idRecurso) AS maxId FROM recurso`);
+        const maxId = (rows as { maxId: number }[])[0]?.maxId || 0;
+        const newIdRecurso = maxId + 1;
 
-        const query = `INSERT INTO recurso (titulo, enlaceFichero,interno,descripcion,n_dificultad,tipo,formato,idioma,deInteres) VALUES ('${titulo}', '${enlaceFichero}','${internoExterno}','${descripcion}',${dificultad},${tipoRecurso},${formatoRecurso},${idiomaRecurso},${deInteresRecurso})`;
-        const [result] = await connection.execute<ResultSetHeader>(query, [titulo, enlaceFichero, internoExterno, descripcion, dificultad, tipoRecurso, formatoRecurso, idiomaRecurso, deInteres]);
+        // Insertar el nuevo recurso con el ID generado manualmente
+        const query = `
+            INSERT INTO recurso (
+                idRecurso,
+                titulo,
+                enlaceFichero,
+                interno,
+                descripcion
+            ) VALUES (?, ?, ?, ?, ?)
+        `;
+        const [result] = await connection.execute(query, [
+            newIdRecurso,
+            titulo,
+            enlaceFichero,
+            internoExterno,
+            descripcion,
+        ]);
 
-        return result.insertId;
+        return newIdRecurso;
     } catch (error) {
-        const errorDuplicate: MyErrorEvent = {
-            code: 11062,
-            message: ER_DUP_ENTRY
-
-        };
-        throw errorDuplicate
+        console.error(error);
+        throw new Error("Error al insertar el recurso.");
     } finally {
         connection.release();
     }
+};
 
-}
+
+
 
 
 export const insertRelacionRecursoCategoria = async (idRecurso: number, idNombre: string) => {
