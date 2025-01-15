@@ -178,7 +178,7 @@ export const getElementoReutilizable = async (valorEtiqueta: string) => {
 
 
 
-
+/*
 export const insertRelacionRoadmapCategoria = async (roadmap: string, categoria: string, prioridad?: number) => {
     const connection = await db.getConnection();
     try {
@@ -199,7 +199,7 @@ export const insertRelacionRoadmapCategoria = async (roadmap: string, categoria:
         connection.release();
     }
 }
-
+*/
 export const insertNuevoRoadmap = async (
     roadmap: string,
     descripcion: string,
@@ -1239,6 +1239,7 @@ export const getCategoriasDeXroadmapSegunZrol = async (roadmap: string, rol: str
         connection.release();
     }
 }
+
 
 export const getUsuario = async (username: string) => {
     const connection = await db.getConnection();

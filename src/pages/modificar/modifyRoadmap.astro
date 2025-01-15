@@ -176,79 +176,151 @@ if (roadmapId) {
       // Delegar eventos para los checkboxes en el contenedor principal
       const headers = document.querySelectorAll(".accordion-header");
 
-      headers.forEach((header) => {
-        header.addEventListener("click", async () => {
-          const parent = header.parentNode;
-          parent.classList.toggle("active");
+headers.forEach((header) => {
+  header.addEventListener("click", async () => {
+    const parent = header.parentNode;
+    parent.classList.toggle("active");
 
-          const content = parent.querySelector(".accordion-content");
-          if (content.style.maxHeight) {
-            content.style.maxHeight = null;
-            const existingSubAccordion = content.querySelector(".accordion-container");
-            if (existingSubAccordion) {
-              existingSubAccordion.remove();
-            }
-          } else {
-            if (!content.querySelector(".accordion-container")) {
-              const roadmapId = new URLSearchParams(window.location.search).get("id");
-              const categoriaNivel1 = header.querySelector(".accordion-content-header span").textContent;
+    const content = parent.querySelector(".accordion-content");
+    if (content.style.maxHeight) {
+      content.style.maxHeight = null;
+      const existingSubAccordion = content.querySelector(".accordion-container");
+      if (existingSubAccordion) {
+        existingSubAccordion.remove();
+      }
+    } else {
+      if (!content.querySelector(".accordion-container")) {
+        const roadmapId = new URLSearchParams(window.location.search).get("id");
+        const categoriaNivel1 = header.querySelector(".accordion-content-header span").textContent;
 
-              if (roadmapId && categoriaNivel1) {
-                try {
-                  const apiUrl = `/api/obtenerParaModificar?roadmap=${encodeURIComponent(
-                    roadmapId
-                  )}&categoriaNivel1=${encodeURIComponent(categoriaNivel1)}`;
+        if (roadmapId && categoriaNivel1) {
+          try {
+            const apiUrl = `/api/obtenerParaModificar?roadmap=${encodeURIComponent(
+              roadmapId
+            )}&categoriaNivel1=${encodeURIComponent(categoriaNivel1)}`;
 
-                  const response = await fetch(apiUrl, {
-                    method: "GET",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
+            const response = await fetch(apiUrl, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
 
-                  if (response.ok) {
-                    const { generales, asociadas } = await response.json();
+            if (response.ok) {
+              const { generales, asociadas } = await response.json();
 
-                    const subAccordion = document.createElement("div");
-                    subAccordion.className = "accordion-container";
+              const subAccordion = document.createElement("div");
+              subAccordion.className = "accordion-container";
 
-                    generales.forEach((categoriaNivel2) => {
-                      const isChecked = asociadas.some(
-                        (asociada) =>
-                          asociada.componenteCategoria.trim().toLowerCase() ===
-                          categoriaNivel2.idNombre.trim().toLowerCase()
-                      );
+              generales.forEach((categoriaNivel2) => {
+                const isChecked = asociadas.some(
+                  (asociada) =>
+                    asociada.componenteCategoria.trim().toLowerCase() ===
+                    categoriaNivel2.idNombre.trim().toLowerCase()
+                );
 
-                      const item = document.createElement("div");
-                      item.className = "accordion-item";
-                      item.innerHTML = `
-                        <button class="accordion-header">
-                          <div class="accordion-content-header">
-                            <span>${categoriaNivel2.idNombre}</span>
-                            <input type="checkbox" class="categoria2-checkbox" ${
-                          isChecked ? "checked" : ""
-                        } />
-                          </div>
-                        </button>
-                        <div class="accordion-content"></div>
-                      `;
+                const item = document.createElement("div");
+                item.className = "accordion-item";
+                item.innerHTML = `
+                  <button class="accordion-header nivel-2" data-nivel2-id="${categoriaNivel2.idCategoria}">
+                    <div class="accordion-content-header">
+                      <span>${categoriaNivel2.idNombre}</span>
+                      <input type="checkbox" class="categoria2-checkbox" ${isChecked ? "checked" : ""} />
+                    </div>
+                  </button>
+                  <div class="accordion-content nivel-3"></div>
+                `;
 
-                      subAccordion.appendChild(item);
-                    });
+                const nivel2Header = item.querySelector(".nivel-2");
+                nivel2Header.addEventListener("click", async () => {
+                  const nivel3Container = item.querySelector(".nivel-3");
 
-                    content.appendChild(subAccordion);
-                    content.style.maxHeight = `${content.scrollHeight}px`;
+                  if (nivel3Container.style.maxHeight) {
+                    nivel3Container.style.maxHeight = null;
+                    nivel3Container.innerHTML = "";
+                  } else {
+                    const categoriaNivel2 = nivel2Header.querySelector(".accordion-content-header span").textContent;
+
+                    if (roadmapId && categoriaNivel1 && categoriaNivel2) {
+                      try {
+                        const nivel3ApiUrl = `/api/obtenerParaModificar?roadmap=${encodeURIComponent(
+                          roadmapId
+                        )}&categoriaNivel1=${encodeURIComponent(categoriaNivel1)}&categoriaNivel2=${encodeURIComponent(categoriaNivel2)}`;
+
+                        const nivel3Response = await fetch(nivel3ApiUrl, {
+                          method: "GET",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                        });
+
+                        if (nivel3Response.ok) {
+                          const { generales: categoriasNivel3Generales, asociadas: categoriasNivel3Asociadas } =
+                            await nivel3Response.json();
+
+                          if (categoriasNivel3Generales.length > 0) {
+                            const subAccordionNivel3 = document.createElement("div");
+                            subAccordionNivel3.className = "accordion-container";
+
+                            categoriasNivel3Generales.forEach((categoriaNivel3) => {
+                              const isChecked = categoriasNivel3Asociadas.some(
+                                (asociadaNivel3) =>
+                                  asociadaNivel3.componenteCategoria.trim().toLowerCase() ===
+                                  categoriaNivel3.idNombre.trim().toLowerCase()
+                              );
+
+                              const itemNivel3 = document.createElement("div");
+                              itemNivel3.className = "accordion-item";
+                              itemNivel3.innerHTML = `
+                                <button class="accordion-header nivel-3">
+                                  <div class="accordion-content-header">
+                                    <span>${categoriaNivel3.idNombre}</span>
+                                    <input type="checkbox" class="categoria3-checkbox" ${
+                                      isChecked ? "checked" : ""
+                                    } />
+                                  </div>
+                                </button>
+                              `;
+
+                              subAccordionNivel3.appendChild(itemNivel3);
+                            });
+
+                            nivel3Container.appendChild(subAccordionNivel3);
+
+                            // Recalcular la altura del acordeón padre
+                            nivel3Container.style.maxHeight = `${nivel3Container.scrollHeight}px`;
+                            content.style.maxHeight = `${content.scrollHeight}px`;
+                          } else {
+                            nivel3Container.innerHTML = "<p>No hay categorías de nivel 3 disponibles.</p>";
+                          }
+                        }
+                      } catch (error) {
+                        console.error("Error al obtener categorías de nivel 3:", error);
+                      }
+                    }
                   }
-                } catch (error) {
-                  console.error("Error en la solicitud a la API:", error);
-                }
-              }
-            } else {
+                });
+
+                subAccordion.appendChild(item);
+              });
+
+              content.appendChild(subAccordion);
+
+              // Recalcular la altura del acordeón padre
               content.style.maxHeight = `${content.scrollHeight}px`;
             }
+          } catch (error) {
+            console.error("Error en la solicitud a la API:", error);
           }
-        });
-      });
+        }
+      } else {
+        content.style.maxHeight = `${content.scrollHeight}px`;
+      }
+    }
+  });
+});
+
+
 
       // Resto del script permanece sin cambios
     });

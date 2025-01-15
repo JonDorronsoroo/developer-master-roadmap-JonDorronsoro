@@ -8,24 +8,22 @@ if(!user){
     return Astro.redirect("/auth/signin")
 }
 
-
 ---
-
 
 <BaseLayout title='Qué modificar' permalink={'/addBD/escogerObjeto'}>
     <SimplePageHeader
     title='Selecciona qué modificar'
-    description='Escoge que es lo que información deseas modifiar de la base de datos.'
+    description='Escoge qué información deseas modificar de la base de datos.'
   />
 
   {user && user.admin==1 &&
 
-  <ButtonDegradado titulo="Modifca o elimina el contenido de la base de datos"  path="/modificar/categoriaSelect" text="Modifcar categoría"></ButtonDegradado>
+  <ButtonDegradado titulo="Modifica o elimina el contenido de la base de datos"  path="/modificar/categoriaSelect" text="Modificar categoría"></ButtonDegradado>
 
   }
 
-    <ButtonDegradado path="/modificar/escogerRecurso" text="Modifcar recurso"></ButtonDegradado>
+  <ButtonDegradado path="/modificar/escogerRecurso" text="Modificar recurso"></ButtonDegradado>
 
-
+  <ButtonDegradado path="/modificar/escogerRoadmap" text="Modificar roadmap"></ButtonDegradado>
 
 </BaseLayout>
